@@ -7,16 +7,19 @@ library(stringr)
 folder_ebovac2 = fs::path("data", "ebovac2")
 folder_hamburg = fs::path("data", "hamburg")
 folder_prevac = fs::path("data", "prevac")
+folder_is2 = fs::path("data", "is2")
 
 # Paths
 path_ebovac2 = fs::path(folder_ebovac2, "ebovac2_clinical.rds")
 path_hamburg = fs::path(folder_hamburg, "hamburg_clinical.rds")
 path_prevac = fs::path(folder_prevac, "prevac_clinical.RData")
+path_is2 = fs::path(folder_is2, "is2_clinical_immResp.rds")
 
 # Load the data
 df_clinical_ebovac2 = readRDS(path_ebovac2)
 df_clinical_hamburg = readRDS(path_hamburg)
 df_clinical_prevac = readRDS(path_prevac)
+df_clinical_is2 = readRDS(path_is2)
 
 
 # Harmonise the column names and types of the major data of interest:
@@ -30,6 +33,8 @@ df_clinical_ebovac2_mutated = df_clinical_ebovac2 %>%
     participant_id = as.character(pid),
     study_accession = "ebovac2",
     sex = ifelse(sex == "F", "Female", "Male"),
+    race = race,
+    ethnicity = ethnicity,
     group = ifelse(arm == "active", "Ad26MVA", "placebo"),
     group_long = actarm,
     time = recode(time, "P+0" = "P+0D"),
@@ -51,6 +56,8 @@ df_clinical_hamburg_mutated = df_clinical_hamburg %>%
     participant_id = as.character(pid),
     study_accession = "hamburg",
     sex = ifelse(sex == "female", "Female", "Male"),
+    race = ifelse(race == "Caucasian","White", "Asian"),
+    ethnicity = "Unknown",
     age = age_baseline,
     group = "rVSV",
     group_long = "rVSV",
@@ -78,6 +85,9 @@ df_clinical_prevac_mutated = df_clinical_prevac %>%
   mutate(
     participant_id = as.character(pid),
     study_accession = "prevac",
+    sex = sex,
+    race = "Unknown",
+    ethnicity = "Unknown",
     age = age_at_enrollement,
     group = arm_short,
     group_long = arm,
@@ -104,6 +114,24 @@ df_clinical_prevac_mutated = df_clinical_prevac %>%
   )
 
 
+df_clinical_is2_mutated = df_clinical_is2 %>%
+  mutate(
+    sex = gender,
+    age = age_imputed,
+    group = vaccine_name,
+    group_long = vaccine_name,
+    time = ifelse(
+      study_time_collected %% 1 == 0,
+      paste0("P+", as.integer(study_time_collected), "D"),
+      paste0("P+", round(study_time_collected * 24), "H")
+    ),
+    ab_p_63 = NA_real_,
+    ab_p_84 = NA_real_,
+    ab_p_180 = NA_real_,
+    ab_b_0 = NA_real_,
+    ab_b_21 = NA_real_
+  )
+
 cols_to_select = c(
   "participant_id",
   "study_accession",
@@ -111,6 +139,8 @@ cols_to_select = c(
   "group_long",
   "age",
   "sex",
+  "race", 
+  "ethnicity",
   "time",
   "ab_p_0",
   "ab_p_7",
@@ -134,11 +164,15 @@ df_clinical_hamburg_mutated = df_clinical_hamburg_mutated %>%
 df_clinical_prevac_mutated = df_clinical_prevac_mutated %>%
   dplyr::select(all_of(cols_to_select))
 
-df_clinical_all = bind_rows(
+df_clinical_is2_mutated = df_clinical_is2_mutated %>%
+  dplyr::select(all_of(cols_to_select))
+
+df_clinical_all = bind_rows(bind_rows(
   bind_rows(df_clinical_ebovac2_mutated, df_clinical_hamburg_mutated),
   df_clinical_prevac_mutated
-) %>% 
-  mutate(study_vaccine = paste0(study_accession, "-", group)) %>% 
+),
+df_clinical_is2_mutated)  %>%
+  mutate(study_vaccine = paste0(study_accession, "-", group)) %>%
   relocate(study_vaccine, .after = group)
 
 # Define unified pre and post-vaccination responses

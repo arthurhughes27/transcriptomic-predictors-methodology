@@ -9,30 +9,37 @@ processed_data_path <- fs::path("data")
 folder_ebovac2 = fs::path("data", "ebovac2")
 folder_hamburg = fs::path("data", "hamburg")
 folder_prevac = fs::path("data", "prevac")
+folder_is2 = fs::path("data", "is2")
 
 path_ebovac2 = fs::path(folder_ebovac2, "ebovac2_merged_norm.rds")
 path_hamburg = fs::path(folder_hamburg, "hamburg_merged_norm.rds")
 path_prevac = fs::path(folder_prevac, "prevac_merged.RData")
+path_is2 = fs::path(folder_is2, "is2_merged.rds")
 
 df_clinical_all = readRDS(file = fs::path(processed_data_path, "df_clinical_all.rds"))
 ebovac2_merged = readRDS(path_ebovac2)
 hamburg_merged = readRDS(path_hamburg)
 prevac_merged = readRDS(path_prevac)
+is2_merged = readRDS(path_is2)
 
 # Select the intersection of genes
 ebovac2_genes = ebovac2_merged %>% 
-  dplyr::select(a1bg:zzz3) %>% 
+  dplyr::select(a1cf:zzz3) %>% 
   colnames()
 
 hamburg_genes = hamburg_merged %>% 
-  dplyr::select(a1bg:zzz3) %>% 
+  dplyr::select(a1cf:zzz3) %>% 
   colnames()
 
 prevac_genes = prevac_merged %>% 
-  dplyr::select(a1bg:zzz3) %>% 
+  dplyr::select(a1cf:zzz3) %>% 
   colnames()
 
-intersection_genes = intersect(intersect(ebovac2_genes, hamburg_genes), prevac_genes)
+is2_genes = is2_merged %>% 
+  dplyr::select(a1cf:zzz3) %>% 
+  colnames()
+
+intersection_genes = intersect(intersect(intersect(ebovac2_genes, hamburg_genes), prevac_genes),is2_genes)
 
 length(intersection_genes)
 
@@ -65,11 +72,19 @@ prevac_merged_filtered = prevac_merged %>%
          )) %>% 
   dplyr::select(participant_id, time, all_of(intersection_genes))
 
-df_stacked = bind_rows(
+is2_merged_filtered = is2_merged %>% 
+  mutate(time = ifelse(
+    study_time_collected %% 1 == 0,
+    paste0("P+", as.integer(study_time_collected), "D"),
+    paste0("P+", round(study_time_collected * 24), "H")
+  )) %>% 
+  dplyr::select(participant_id, time, all_of(intersection_genes))
+
+df_stacked = bind_rows(bind_rows(
   bind_rows(ebovac2_merged_filtered, hamburg_merged_filtered),
   prevac_merged_filtered
-)
-
+),
+is2_merged_filtered)
 
 df_merged_all = merge(x = df_clinical_all, 
                       y = df_stacked,

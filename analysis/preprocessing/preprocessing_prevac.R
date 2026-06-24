@@ -125,7 +125,7 @@ prevac_merged = prevac_merged %>%
   janitor::clean_names()
 
 prevac_clinical = prevac_merged %>% 
-  dplyr::select(-(a1bg:zzz3))
+  dplyr::select(-(a1cf:zzz3))
 
 # ---- Specify path to save processed data ----
 processed_data_path <- fs::path("data", "prevac")

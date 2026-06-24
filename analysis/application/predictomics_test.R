@@ -26,7 +26,7 @@ tp_group = c("P+7D", "P+0D")
 arm_group = c("hamburg-rVSV")
 
 gene_names = df_merged_all %>% 
-  dplyr::select(a1bg:zzz3) %>% 
+  dplyr::select(a1cf:zzz3) %>% 
   colnames()
 
 ## Filter data
@@ -41,7 +41,7 @@ df_merged_all_filtered = df_merged_all %>%
   filter(length(participant_id) == 2) %>%
   ungroup() %>%
   arrange(participant_id) %>%
-  dplyr::select(treatment, response, a1bg:zzz3)
+  dplyr::select(treatment, response, a1cf:zzz3)
 
 ## response in treated
 yone = df_merged_all_filtered %>%
@@ -56,12 +56,12 @@ yzero = df_merged_all_filtered %>%
 ## surrogates in treated
 sone = df_merged_all_filtered %>%
   filter(treatment == 1) %>%
-  dplyr::select(a1bg:zzz3)
+  dplyr::select(a1cf:zzz3)
 
 ## surrogates in control
 szero = df_merged_all_filtered %>%
   filter(treatment == 0) %>%
-  dplyr::select(a1bg:zzz3)
+  dplyr::select(a1cf:zzz3)
 
 ## Apply RISE screen function
 rise_screen_result_rVSV_hamburg = rise.screen(

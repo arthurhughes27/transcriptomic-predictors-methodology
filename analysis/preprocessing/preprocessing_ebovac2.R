@@ -140,7 +140,18 @@ colnames(antibody2)[-1] <- paste0("Ab_", colnames(antibody2)[-1])
 # ---- Merge clinical and antibody data ----
 df_merged <- clinical2 %>%
   inner_join(antibody2, by = "SUBJID") %>%
-  arrange(Sample)
+  arrange(Sample) %>% 
+  mutate(
+    RACE = recode(
+      RACE,
+      "WHITE" = "White",
+      "OTHER" = "Unknown",
+      "BLACK OR AFRICAN AMERICAN" = "Black or African American"
+    ),
+    ETHNIC = recode(ETHNIC, 
+                    "NOT HISPANIC OR LATINO" = "Other",
+                    "HISPANIC OR LATINO" = "Hispanic or Latino")
+  )
 
 # ---- Prepare transcriptomic counts ----
 # Remove first 3 columns (non-gene identifiers)
@@ -188,7 +199,7 @@ final_cols <- c(
 )
 
 ebovac_merged_raw <- ebovac_merged_raw %>%
-  dplyr::select(all_of(final_cols), A1BG:ZZZ3) %>%
+  dplyr::select(all_of(final_cols), a1cf:ZZZ3) %>%
   rename(
     PID       = SUBJID,
     Age       = AGE,
@@ -201,7 +212,7 @@ ebovac_merged_raw <- ebovac_merged_raw %>%
   janitor::clean_names()
 
 ebovac_merged_norm <- ebovac_merged_norm %>%
-  dplyr::select(all_of(final_cols), A1BG:ZZZ3) %>%
+  dplyr::select(all_of(final_cols), a1cf:ZZZ3) %>%
   rename(
     PID       = SUBJID,
     Age       = AGE,
@@ -214,7 +225,7 @@ ebovac_merged_norm <- ebovac_merged_norm %>%
   janitor::clean_names()
 
 ebovac2_clinical = ebovac_merged_norm %>% 
-  dplyr::select(-c(a1bg:zzz3))
+  dplyr::select(-c(a1cf:zzz3))
 
 # ---- Save processed datasets ----
 processed_data_path <- fs::path("data", "ebovac2")

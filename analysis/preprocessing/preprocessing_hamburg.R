@@ -135,7 +135,7 @@ hamburg_norm_final <- bind_cols(hamburg_clinical, counts_log2_cpm_tmm_hgnc) %>%
   janitor::clean_names()  # make column names consistent
 
 hamburg_clinical = hamburg_norm_final %>% 
-  dplyr::select(-(a1bg:zzz3))
+  dplyr::select(-(a1cf:zzz3))
 
 # ---- Save processed dataset ----
 processed_data_path <- fs::path("data", "hamburg")

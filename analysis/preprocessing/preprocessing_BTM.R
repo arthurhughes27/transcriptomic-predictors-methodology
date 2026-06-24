@@ -30,7 +30,7 @@ all_noNorm_eset <- readRDS(p_load_expression)
 
 # First take the expression data
 expr_data = all_noNorm_eset %>% 
-  dplyr::select(a1bg:zzz3)
+  dplyr::select(a1cf:zzz3)
 
 # Now extract the gene names from the expression matrix - we are only interested in keeping these
 gene_names = colnames(expr_data) %>%

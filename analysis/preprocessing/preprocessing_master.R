@@ -4,6 +4,7 @@
 source(fs::path("analysis", "preprocessing", "preprocessing_hamburg.R"))
 source(fs::path("analysis", "preprocessing", "preprocessing_ebovac2.R"))
 source(fs::path("analysis", "preprocessing", "preprocessing_prevac.R"))
+source(fs::path("analysis", "preprocessing", "preprocessing_is2_master.R"))
 
 # Harmonising and merging the data across studies
 source(fs::path("analysis", "preprocessing", "preprocessing_clinical_harmonisation.R"))
