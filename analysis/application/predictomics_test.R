@@ -5,7 +5,6 @@ library(SurrogateRank)
 library(tidyverse)
 library(clipr)
 library(tidyverse)
-library(caret)
 
 # Folder to save figures
 figures_folder <- fs::path("output", "figures", "prediction")
@@ -41,7 +40,12 @@ df_merged_all_filtered = df_merged_all %>%
   filter(length(participant_id) == 2) %>%
   ungroup() %>%
   arrange(participant_id) %>%
-  dplyr::select(treatment, response, a1cf:zzz3)
+  dplyr::select(treatment, response, a1cf:zzz3) %>%
+  dplyr::select(
+    treatment,
+    response,
+    where(~ !any(is.na(.)))
+  )
 
 ## response in treated
 yone = df_merged_all_filtered %>%
@@ -100,11 +104,15 @@ df_merged_all_filtered = df_merged_all %>%
   mutate(treatment = ifelse(study_vaccine == arm_group[1], 1, 0),
          response = ab_p_28) %>%
   filter(!is.na(response), !is.na(ab_p_0)) %>%
-  dplyr::select(response, treatment, any_of(cov_names), any_of(gene_names)) %>% 
-  mutate(response = log(response))
+  dplyr::select(participant_id, time, response, treatment, any_of(cov_names), any_of(gene_names)) %>% 
+  mutate(response = log(response)) %>%
+  dplyr::select(participant_id, time,
+    response, treatment, any_of(cov_names),
+    where(~ !any(is.na(.)))
+  )
 
 X = df_merged_all_filtered %>% 
-  dplyr::select(-response, -treatment, -any_of(cov_names)) %>% 
+  dplyr::select(-participant_id, -time, -response, -treatment, -any_of(cov_names)) %>% 
   as.matrix()
 
 Y = df_merged_all_filtered %>%
@@ -119,21 +127,104 @@ covariates = df_merged_all_filtered %>%
 genesets = gs[["genesets"]]
 names(genesets) = gs[["geneset.names.descriptions"]]
 
+time.in = Sys.time()
+future::plan(future::multisession, workers = 7)
 res = predictomics::predict_cv(
   X = X,
   Y = Y,
   treatment = treatment,
-  treatment_predictor = TRUE,
+  treatment_predictor = T,
   verbose = T,
   covariates = covariates,
   cv_type = "kfold",
-  folds = 10,
+  folds = 5,
   seed = 12345,
-  # engineering_params = list(method = "engineer", col_transform = "none", genesets = genesets, agg_method = "pc1"),
-  selection_params = list(method = "variance", top_n = 2500),
+  engineering_params = list(method = "engineer", col_transform = "none", genesets = genesets, agg_method = "gsva"),
+  selection_params = list(method = "dearseq", dearseq_level = "geneset", genesets = genesets, dearseq_mode = "classic", threshold = 0.05),
   model_params = list(method = "glmnet", inner_folds = 5, metric = "r2"),
   outside_cv = T
 )
+future::plan(future::sequential)  # reset after use
+time.out = Sys.time()
+
+
+time.diff = time.out - time.in 
+time.diff
 
 plot(res)
+plot_selection_stability(res, top_n = 20, type = "embedded")
 
+
+
+## Select expression data
+expr <- df_merged_all_filtered %>%
+  dplyr::select(a1cf:zzz3) %>%
+  as.matrix()
+
+## transpose:
+## dearseq expects genes x samples
+alpha = 0.05
+
+exprmat <- t(expr)
+
+rownames(exprmat) <- colnames(expr)
+
+metadata <- df_merged_all_filtered %>%
+  dplyr::select(
+    participant_id,
+    treatment,
+    time,
+    age,
+    sex
+  )
+
+X <- model.matrix(
+  ~ age + sex,
+  data = metadata
+)
+
+variables2test = model.matrix(
+  ~ 0+treatment,
+  data = metadata
+)
+
+
+dearseq_res = suppressMessages(dear_seq(exprmat = exprmat,
+                       covariates = X,
+                       variables2test = variables2test,
+                       which_test = "asymptotic",
+                       preprocessed = T,
+                       padjust_methods = "BH",
+                       which_weights = "loclin",
+                       sample_group = NULL,
+                       n_perm = 1000,
+                       bw = "nrd",
+                       kernel = "gaussian"))
+
+
+
+ind = dearseq_res[["pvals"]]$adjPval < alpha
+
+genes_filtered = rownames(exprmat)[ind]
+
+## Gene sets
+genesets <- gs[["genesets"]]
+
+dgsa_res <- suppressMessages(dgsa_seq(
+  exprmat = exprmat,
+  covariates = X,
+  variables2test = variables2test,
+  genesets = genesets,
+  which_test = "asymptotic",
+  preprocessed = TRUE,
+  padjust_methods = "BH",
+  which_weights = "loclin",
+  sample_group = NULL,
+  n_perm = 1000,
+  bw = "nrd",
+  kernel = "gaussian"
+))
+
+ind = dgsa_res[["pvals"]]$adjPval < alpha
+
+genesets_filtered = gs[["geneset.names.descriptions"]][ind]

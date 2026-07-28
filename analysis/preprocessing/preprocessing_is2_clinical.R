@@ -72,6 +72,9 @@ is2_clinical$vaccine_name_short <- recode(
   "HIV (RVV)"             = "HIV (RVV)"
 )
 
+is2_clinical = is2_clinical %>% 
+  filter(vaccine_name == "Influenza (IN)")
+
 # Define an ordering for the vaccines (this is for later to make figures consistent)
 conditions_order <- c(
   "Tuberculosis (RVV)",
@@ -253,22 +256,22 @@ color_palette_study = c(
   "#7d973c", # HIV (RVV)
   "#170931",# Influenza (IN)
   "#230C48",
-  "#2E0D5F", 
+  "#2E0D5F",
   "#3A0A77",
   "#460090",
   "#5100A5",
   "#5C00BA",
-  "#6701D0", 
+  "#6701D0",
   "#7301E5", #
   "#7E01FB",
   "#8632FF",
   "#8D4DFF",
   "#9562FF",
   "#9D74FF",
-  "#A684FF", 
+  "#A684FF",
   "#AF94FF",
   "#4ea76e", # Influenza (LV)
-  "#bc69b0", # Malaria (RP) 
+  "#bc69b0", # Malaria (RP)
   "#33d4d1", # Meningococcus (CJ)
   "#B2FBF8",
   "#bb4c41", # Meningococcus (PS)
@@ -292,8 +295,8 @@ is2_clinical$study_colour <-
 # Final dataframe to be saved has samples as rows and variables as columns
 dim(is2_clinical)
 
-is2_clinical = is2_clinical %>% 
-  dplyr::select(participant_id, study_time_collected, age_imputed, gender, race, ethnicity, study_accession, vaccine_name) %>% 
+is2_clinical = is2_clinical %>%
+  dplyr::select(participant_id, study_time_collected, age_imputed, gender, race, ethnicity, study_accession, vaccine_name) %>%
   distinct()
 
 # Save processed dataframe
