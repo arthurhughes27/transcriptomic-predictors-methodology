@@ -9,7 +9,7 @@ library(grid)
 library(gridExtra)
 
 # Folder to save figures
-figure_path <- fs::path("output", "figures", "pipeline_illustration")
+figure_path <- fs::path("output", "figures", "reference_models")
 
 # Load data
 df_merged_path = fs::path("data", "df_merged_all.rds")
@@ -26,7 +26,7 @@ gene_names = df_merged_all %>%
   colnames()
 
 ## Define the treatment groups of interest
-arm_group = c("prevac-rVSV", "prevac-placebo")
+arm_group = c("prevac-Ad26MVA", "prevac-placebo")
 
 cov_names = c("sex", "age", "ab_p_0")
 
@@ -66,11 +66,11 @@ res = predictomics::predict_cv(
   X = X,
   Y = Y,
   treatment = treatment,
-  treatment_predictor = F,
+  treatment_predictor = T,
   verbose = T,
   covariates = covariates,
   cv_type = "loo",
-  folds = 5,
+  folds = 10,
   seed = 12345,
   engineering_params = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "mean"),
   # selection_params = list(method = "variance", top_n = 50),
@@ -125,7 +125,7 @@ g <- egg::ggarrange(
 g_title <- arrangeGrob(
   g,
   top = textGrob(
-    "CV prediction of rVSV vaccine antibody response (reference model)",
+    "CV prediction of Ad26/MVA vaccine antibody response (reference model)",
     gp = gpar(fontsize = 22, fontface = "bold")
   )
 )
@@ -133,7 +133,8 @@ g_title <- arrangeGrob(
 grid.newpage()
 grid.draw(g_title)
 
-ggsave(fs::path(figure_path, "Figure6-5.pdf"),
+ggsave(fs::path(figure_path, "Figure6-4.pdf"),
        g_title, width = 15, height = 4.8, dpi = 300)
+
 
 rm(list = ls())

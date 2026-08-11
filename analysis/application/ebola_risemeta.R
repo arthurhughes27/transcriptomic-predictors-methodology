@@ -14,7 +14,7 @@ gs = readRDS(gs_path)
 tp_group = c("P+7D", "P+0D")
 arm_group = c("ebovac2-Ad26MVA",    
               "prevac-Ad26MVA",            
-              "prevac-rVSV",
+              "prevac-rVSV" ,
               "hamburg-rVSV")
 
 ## Filter data
@@ -113,5 +113,22 @@ screen.res = rise.screen.meta(yone = yone,
                               power.want.s.study = 0.8,
                               paired.all = TRUE,
                               n.cores = 5, 
-                              p.correction = "none", 
+                              p.correction = "BH", 
                               return.study.similarity.plot = F)
+
+p1 = screen.res[["gamma.s.plot"]][["screen.plot"]]
+
+p1
+
+# Save figure
+TLS_figures_folder <- fs::path("output", "figures", "TLS")
+
+ggsave(
+  filename = "RISEMeta_Ebola.pdf",
+  path = TLS_figures_folder,
+  plot = p1,
+  width = 35,
+  height = 20,
+  units = "cm"
+)
+

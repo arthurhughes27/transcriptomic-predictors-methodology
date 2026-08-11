@@ -9,7 +9,7 @@ library(grid)
 library(gridExtra)
 
 # Folder to save figures
-figure_path <- fs::path("output", "figures", "pipeline_illustration")
+figure_path <- fs::path("output", "figures", "pipeline_comparison")
 
 # Load data
 df_merged_path = fs::path("data", "df_merged_all.rds")
@@ -17,6 +17,10 @@ gs_path = fs::path("data", "BTM_processed.rds")
 
 df_merged_all = readRDS(df_merged_path)
 gs = readRDS(gs_path)
+
+genesets = gs[["genesets"]]
+names(genesets) = gs[["geneset.names.descriptions"]]
+
 
 # Pipeline on PREVAC data
 tp_group = c("P+7D")
@@ -57,32 +61,69 @@ treatment = df_merged_all_filtered %>%
 covariates = df_merged_all_filtered %>%
   dplyr::select(any_of(cov_names))
 
-genesets = gs[["genesets"]]
-names(genesets) = gs[["geneset.names.descriptions"]]
 
-time.in = Sys.time()
+# Define reference pipeline
+reference_params = list(
+  engineering_params = list(
+    method = "engineer",
+    col_transform = "z",
+    genesets = genesets,
+    agg_method = "mean"
+  ),
+  selection_params = list(method = "variance", top_n = 5000),
+  model_params     = list(method = "glmnet", inner_folds = 5, metric = "r2")
+)
+
+option_choices = list(
+  "Genewise" = list(
+    method = "engineer",
+    col_transform = "z",
+    genesets = NULL,
+    agg_method = "median"
+  ),
+  "Median" = list(
+    method = "engineer",
+    col_transform = "z",
+    genesets = genesets,
+    agg_method = "median"
+  ),
+  "Max" = list(
+    method = "engineer",
+    col_transform = "z",
+    genesets = genesets,
+    agg_method = "max"
+  ),
+  "PC1" = list(
+    method = "engineer",
+    col_transform = "z",
+    genesets = genesets,
+    agg_method = "pc1"
+  ),
+  "GSVA" = list(
+    method = "engineer",
+    col_transform = "z",
+    genesets = genesets,
+    agg_method = "gsva",
+    gsva_min_size = 2
+  ),
+  "ssGSEA" = list(
+    method = "engineer",
+    col_transform = "z",
+    genesets = genesets,
+    agg_method = "ssgsea",
+    ssgsea_min_size = 2
+  )
+)
+
 future::plan(future::multisession, workers = 7)
 res = predictomics::compare_pipelines(
   X = X,
   Y = Y,
-  option_type = "selection",
-  option_choices = list(
-    "Spearman (p = 100)" = list(method = "spearman", top_n = 100),
-    "Spearman (p = 50)" = list(method = "spearman", top_n = 50),
-    "Spearman (p = 20)" = list(method = "spearman", top_n = 20)
-  ),
-  reference_params = list(
-    engineering_params = list(
-      method = "engineer",
-      col_transform = "z",
-      genesets = genesets,
-      agg_method = "mean"
-    ),
-    selection_params = list(method = "variance", top_n = 100),
-    model_params     = list(method = "glmnet")
-  ),
+  option_type = "engineering",
+  option_choices = option_choices,
+  reference_params = reference_params,
   treatment = treatment,
-  treatment_predictor = T,
+  treatment_predictor = F,
   verbose = T,
   covariates = covariates,
   cv_type = "kfold",
@@ -90,19 +131,16 @@ res = predictomics::compare_pipelines(
   seed = 12345,
   outside_cv = F
 )
-future::plan(future::sequential)  # reset after use
-time.out = Sys.time()
+future::plan(future::sequential)
 
 
-time.diff = time.out - time.in 
-time.diff
+p1 = plot(res, metric = "R2")
 
-
-p1 = plot(res, metric = "sRMSE")
+p1 = p1 + ggtitle(label = "Pipeline comparison: feature engineering (PREVAC-rVSV)")
 
 p1
 
-ggsave(fs::path(figure_path, "Figure6-5.pdf"),
-       p1, width = 7, height = 4, dpi = 300)
+ggsave(fs::path(figure_path, "comparison_engineering_rVSV.pdf"),
+       p1, width = 8, height = 4.5, dpi = 300)
 
 # rm(list = ls())

@@ -9,7 +9,7 @@ library(grid)
 library(gridExtra)
 
 # Folder to save figures
-figure_path <- fs::path("output", "figures", "pipeline_illustration")
+figure_path <- fs::path("output", "figures", "reference_models")
 
 # Load data
 df_merged_path = fs::path("data", "df_merged_all.rds")
@@ -18,7 +18,7 @@ gs_path = fs::path("data", "BTM_processed.rds")
 df_merged_all = readRDS(df_merged_path)
 gs = readRDS(gs_path)
 
-# Pipeline on PREVAC data
+# Pipeline on SDY1276 data
 tp_group = c("P+1D")
 
 gene_names = df_merged_all %>% 
