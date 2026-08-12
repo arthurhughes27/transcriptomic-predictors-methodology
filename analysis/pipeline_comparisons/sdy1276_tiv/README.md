@@ -44,19 +44,26 @@ before relying on the output:
   contrast, which SDY1276 TIV doesn't have (single arm). Their *paired*
   modes instead contrast each participant's baseline (day 0) vs. day-1
   expression, which this dataset does have, and are compared in
-  `03_compare_selection.R`'s second section. Because both paired methods
-  select individual gene names (rather than gene-set scores), and because
-  dearseq's paired mode doesn't automatically discard the pre-vaccination
-  rows the way `rise_paired = TRUE` does, they're implemented as an explicit
-  two-step process (select on the paired data, then evaluate the selected
-  genes - with baseline rows discarded - on the single/day-1 dataset via
-  `compare_pipelines(option_type = "predictors")`) rather than folded into
-  the main `option_type = "selection"` comparison. See that section's
-  comment in `03_compare_selection.R` for the full reasoning, and
-  `R/pipeline_defaults.R::raw_gene_reference_params()` for the (raw,
-  non-aggregated) reference pipeline they're compared against. Classic
-  RISE/dearseq (treatment vs. control) are still a planned addition for the
-  placebo-controlled Ebola/PREVAC datasets.
+  `03_compare_selection.R`'s second section. As of predictomics' "Harmonise
+  dearseq and RISE paired-mode row handling" change, both paired modes
+  behave identically: screening uses both timepoints, then pre-vaccination
+  rows are automatically discarded before modelling. They're still
+  implemented here as an explicit two-step process (select on the paired
+  data via `run_selection()`, then evaluate the selected genes on the
+  single/day-1 dataset via `compare_pipelines(option_type = "predictors")`)
+  rather than folded into the main `option_type = "selection"` comparison,
+  for two other reasons: (1) `compare_pipelines()`'s row-parity handling
+  (restricting non-paired pipelines to post-vaccination rows so they're
+  comparable to a paired one) only applies for `option_type =
+  "engineering"`, not `"selection"` - a direct `"selection"`-type call would
+  fit the reference/baseline rows on pseudo-replicated (both-arms,
+  non-independent) data; and (2) RISE/dearseq select individual gene names,
+  which don't line up with the reference pipeline's gene-SET-aggregated
+  columns. See that section's comment in `03_compare_selection.R` for the
+  full reasoning, and `R/pipeline_defaults.R::raw_gene_reference_params()`
+  for the (raw, non-aggregated) reference pipeline they're compared against.
+  Classic RISE/dearseq (treatment vs. control) are still a planned addition
+  for the placebo-controlled Ebola/PREVAC datasets.
 - **Gene-level fold-change.** Requires paired baseline (day 0) + post (day 1)
   expression per participant, unlike the rest of the pipeline (day-1
   expression only). It is therefore evaluated as a separate

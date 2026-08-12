@@ -20,10 +20,11 @@
 #      participant's baseline (day 0) vs. day-1 gene expression to screen
 #      for vaccine-responsive genes - this SDY1276 dataset does have that
 #      contrast available (see 01_prepare_data.R's paired dataset). Both
-#      return individual gene names (not gene-set scores), and are
-#      implemented as a two-step process rather than a single
-#      `compare_pipelines()` call - see the comment above that section for
-#      why.
+#      return individual gene names (not gene-set scores) and, as of a
+#      recent predictomics change, both automatically discard
+#      pre-vaccination rows before modelling. They're still implemented as
+#      a two-step process rather than a single `compare_pipelines()` call,
+#      for a different reason - see the comment above that section.
 #
 # Run analysis/pipeline_comparisons/sdy1276_tiv/01_prepare_data.R first.
 
@@ -83,27 +84,40 @@ gc()
 #
 # Both `rise_paired = TRUE` and `dearseq_mode = "paired"` screen genes on the
 # PAIRED (baseline + day-1) dataset, contrasting each participant's
-# timepoint == 1 (day 1) vs. timepoint == 0 (day 0) expression. That screen
-# returns a set of individual gene names.
+# timepoint == 1 (day 1) vs. timepoint == 0 (day 0) expression, and return a
+# set of individual gene names. As of predictomics' "Harmonise dearseq and
+# RISE paired-mode row handling" change, `predict_cv()`/`compare_pipelines()`
+# treat both identically: screening uses both arms, then pre-vaccination
+# rows are automatically discarded before engineering/modelling proceeds on
+# post-vaccination rows only. (Previously dearseq's paired mode only
+# filtered columns and left row handling to the caller - that asymmetry no
+# longer applies, but is worth knowing if you're comparing against an older
+# predictomics version.)
 #
-# For RISE, `predictomics::predict_cv()`/`compare_pipelines()` handle the
-# "discard the pre-vaccination rows, then model on the selected genes" step
-# automatically once `rise_paired = TRUE` and `individual_id`/`timepoint` are
-# supplied. dearseq's paired mode does not have the same automatic row-drop -
-# per the package's own documentation, it "operates upstream of engineering"
-# and only filters *columns* (genes), leaving row handling to the caller.
+# Even with that symmetry, feeding the paired dataset straight into a single
+# `compare_pipelines(option_type = "selection")` call still wouldn't give a
+# fair comparison here, for two reasons:
+#   - The reference/baseline rows of that same call would be fit on the
+#     UNRESTRICTED paired data (both arms) - `compare_pipelines()`'s
+#     row-parity handling (restricting non-`gene_level_fc` pipelines to
+#     post-vaccination rows) only applies for `option_type = "engineering"`,
+#     not `"selection"`. Each participant's baseline and day-1 rows share
+#     the same response value, so an unrestricted fit is fit on
+#     pseudo-replicated (non-independent) samples - exactly the kind of
+#     leakage this chapter is about avoiding.
+#   - RISE/dearseq return individual gene names, which don't line up with
+#     the reference pipeline's gene-SET-aggregated columns (see
+#     `raw_gene_reference_params()` below for the gene-level comparator used
+#     instead).
 #
-# Rather than rely on two different automatic behaviours (and since neither
-# selection method's output - individual gene names - lines up with the
-# reference pipeline's gene-SET-aggregated columns; see
-# `raw_gene_reference_params()`), both are run here as an explicit two-step
-# process that works identically for both methods and mirrors exactly what
-# you described: (1) select genes on the paired data, via
-# `predictomics::run_selection()` directly; (2) discard the pre-vaccination
-# (day 0) rows entirely and evaluate the selected genes on the single (day-1)
-# dataset, via `compare_pipelines(option_type = "predictors")` against the
-# same raw-gene reference used for the "Gene-set: none" option in
-# 02_compare_engineering.R.
+# So both are run here as an explicit two-step process instead: (1) select
+# genes on the paired data, via `predictomics::run_selection()` directly (a
+# pure scoring call - no modelling, so no risk of the pseudo-replication
+# issue above); (2) discard the pre-vaccination (day 0) rows entirely and
+# evaluate the selected genes on the single (day-1, one independent row per
+# participant) dataset, via `compare_pipelines(option_type = "predictors")`
+# against the same raw-gene reference used for the "Gene-set: none" option
+# in 02_compare_engineering.R.
 #
 # NOTE: a handful of the genes RISE/dearseq select from the paired dataset
 # may be absent from `single$gene_names` (each dataset's complete-case
