@@ -2,16 +2,18 @@
 #
 # Compare feature-engineering choices for predicting SDY1276 (TIV) day-28
 # antibody titer from day-1 gene expression, against the reference pipeline
-# (no gene-level transform, no gene-set aggregation, elastic net model; see
-# R/pipeline_defaults.R).
+# (z-scored gene-level transform, mean gene-set aggregation, elastic net
+# model; see R/pipeline_defaults.R).
 #
 # Two comparisons are run, matching the two axes of feature engineering
 # considered in Chapter 5, Table 5.2, and reported as two separate figures:
 #
-#   1. Gene-set-level aggregation (mean / median / max / 1st PC / GSVA /
-#      ssGSEA of Blood Transcriptional Modules), each applied on top of a
-#      z-scored gene-level transform, using the single (day-1) expression
-#      timepoint.
+#   1. Gene-set-level aggregation (gene-wise/no aggregation, mean, median,
+#      max, 1st PC, GSVA, ssGSEA of Blood Transcriptional Modules), each
+#      applied on top of a z-scored gene-level transform, using the single
+#      (day-1) expression timepoint. Mean aggregation is the reference and
+#      so is also included here as an explicit option, to show it on the
+#      same comparison plot as the alternatives.
 #   2. Gene-level transformation only: z-score vs. individual-level
 #      fold-change from baseline. The fold-change option needs *both*
 #      baseline (day 0) and day-1 expression per participant, so this
@@ -36,7 +38,7 @@ genesets <- analysis_data$genesets
 
 figure_path <- fs::path("output", "figures", "pipeline_comparisons", "sdy1276_tiv")
 
-reference_params <- reference_pipeline_params()
+reference_params <- reference_pipeline_params(genesets)
 
 ## ---- 1. Gene-set aggregation (single timepoint) ---------------------------
 
