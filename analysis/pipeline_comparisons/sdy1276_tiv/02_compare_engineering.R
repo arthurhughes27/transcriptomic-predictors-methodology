@@ -55,8 +55,12 @@ res_aggregation <- run_pipeline_comparison(
   reference_params = reference_params
 )
 
+gc()
+
 p_aggregation <- plot(res_aggregation, metric = "R2") +
   ggtitle("Pipeline comparison: gene-set aggregation (SDY1276, TIV)")
+
+print(p_aggregation)
 
 save_pipeline_comparison_plot(
   p_aggregation, figure_path, "comparison_engineering_aggregation_sdy1276_tiv.pdf"
@@ -88,6 +92,11 @@ res_gene_level <- run_pipeline_comparison(
 p_gene_level <- plot(res_gene_level, metric = "R2") +
   ggtitle("Pipeline comparison: gene-level transformation (SDY1276, TIV)")
 
+print(p_gene_level)
+
 save_pipeline_comparison_plot(
   p_gene_level, figure_path, "comparison_engineering_gene_level_sdy1276_tiv.pdf"
 )
+
+gc()
+rm(list = ls())

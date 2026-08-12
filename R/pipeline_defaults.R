@@ -34,7 +34,7 @@ reference_pipeline_params <- function(model_inner_folds = 5, model_metric = "r2"
       # analysis/application/pipeline_comparison/comparison_engineering_rVSV.R.
       agg_method = "mean"
     ),
-    selection_params = NULL,
+    selection_params = list(method = "variance", top_n = 7500),
     model_params = list(method = "glmnet", inner_folds = model_inner_folds, metric = model_metric)
   )
 }

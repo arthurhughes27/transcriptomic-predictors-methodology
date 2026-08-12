@@ -62,4 +62,9 @@ res <- run_pipeline_comparison(
 p <- plot(res, metric = "R2") +
   ggtitle("Pipeline comparison: feature selection (SDY1276, TIV)")
 
+print(p)
+
 save_pipeline_comparison_plot(p, figure_path, "comparison_selection_sdy1276_tiv.pdf")
+
+gc()
+rm(list = ls())
