@@ -25,13 +25,9 @@ reference_pipeline_params <- function(model_inner_folds = 5, model_metric = "r2"
   list(
     engineering_params = list(
       method = "engineer",
-      col_transform = "none",
+      col_transform = "z",
       gene_level_fc = FALSE,
-      genesets = NULL,
-      # agg_method is ignored by predictomics::engineer() when genesets is
-      # NULL (no gene-set aggregation is performed); the value below is a
-      # placeholder only, following the same convention used in
-      # analysis/application/pipeline_comparison/comparison_engineering_rVSV.R.
+      genesets = genesets,
       agg_method = "mean"
     ),
     selection_params = list(method = "variance", top_n = 7500),
