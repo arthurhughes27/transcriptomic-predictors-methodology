@@ -26,11 +26,14 @@ and without access to the (privacy-protected) underlying data, so none of
 these scripts have been executed. A few choices are worth double-checking
 before relying on the output:
 
-- **Reference pipeline.** Follows Chapter 5, Table 5.2's underlined defaults
-  literally: no gene-level transform, no gene-set aggregation (raw gene
-  features), no feature selection, elastic net model. This differs from the
-  reference pipeline used in the older `analysis/application/` scripts, which
-  used a z-scored, mean-aggregated (BTM) reference.
+- **Reference pipeline.** A z-scored gene-level transform, mean aggregation of
+  Blood Transcriptional Modules, a relaxed variance pre-filter (top 7,500
+  gene sets, to keep model fitting tractable), and an elastic net model
+  (`R/pipeline_defaults.R::reference_pipeline_params()`), matching the
+  reference used in the older `analysis/application/` scripts.
+  `reference_pipeline_params()` takes `genesets` as an explicit argument
+  (rather than reading it from a global variable), so every call site must
+  pass it, e.g. `reference_pipeline_params(genesets)`.
 - **Covariates.** Follows Chapter 5, Section 5.4 literally: age, sex, race.
   The older scripts additionally included baseline antibody titer (`ab_p_0`)
   as a covariate; this is omitted here since the chapter text does not list

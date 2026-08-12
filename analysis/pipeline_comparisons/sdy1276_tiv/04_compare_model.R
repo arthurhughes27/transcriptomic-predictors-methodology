@@ -26,10 +26,11 @@ source(fs::path("R", "plotting.R"))
 
 analysis_data <- readRDS(fs::path("data", "derived", "sdy1276_tiv_analysis_data.rds"))
 single <- analysis_data$single
+genesets <- analysis_data$genesets
 
 figure_path <- fs::path("output", "figures", "pipeline_comparisons", "sdy1276_tiv")
 
-reference_params <- reference_pipeline_params()
+reference_params <- reference_pipeline_params(genesets)
 
 option_choices <- list(
   "Linear regression"         = list(method = "lm", inner_folds = 5, metric = "r2"),
