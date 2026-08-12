@@ -29,11 +29,14 @@ Data are harmonised across several vaccine studies/cohorts:
 
 ```
 analysis/
-  preprocessing/     # Per-study cleaning and harmonisation, merging into unified datasets
-  descriptive/        # Descriptive summaries/figures of study design and data availability
-  application/        # Application of the predictomics pipeline
-    reference_models/       # "Reference" pipeline fit per study/vaccine group
-    pipeline_comparison/    # Systematic comparison of engineering/selection/model choices
+  preprocessing/          # Per-study cleaning and harmonisation, merging into unified datasets
+  descriptive/            # Descriptive summaries/figures of study design and data availability
+  application/            # Original application of the predictomics pipeline (being superseded)
+    reference_models/         # "Reference" pipeline fit per study/vaccine group
+    pipeline_comparison/      # Systematic comparison of engineering/selection/model choices
+  pipeline_comparisons/   # Current pipeline-comparison analyses, one folder per dataset
+    sdy1276_tiv/               # SDY1276 (TIV) engineering/selection/model comparisons
+R/                        # Reusable helper functions shared across analysis scripts
 ```
 
 ### Preprocessing (`analysis/preprocessing/`)
@@ -59,6 +62,23 @@ studies:
 - `reference_models/` — fits a single "reference" pipeline configuration per vaccine platform (TIV, Ad26/MVA, rVSV); `reference_model_master.R` runs all three
 - `pipeline_comparison/` — uses `predictomics::compare_pipelines()` to systematically compare alternative engineering, selection, and modelling choices against the reference pipeline, across studies/vaccine groups
 - `ebola_risemeta.R` — RISE-based meta-analysis across the Ebola vaccine studies
+
+### Pipeline comparisons (`analysis/pipeline_comparisons/`)
+
+Reimplementation of the pipeline-comparison analyses, restructured for
+modularity and reuse; intended to eventually replace
+`analysis/application/pipeline_comparison/` and
+`analysis/application/reference_models/`. Each dataset has its own
+subfolder (currently `sdy1276_tiv/` only). Within a dataset folder, a
+`01_prepare_data.R` script builds and caches an analysis-ready dataset, and
+one script per methodological choice (`02_compare_engineering.R`,
+`03_compare_selection.R`, `04_compare_model.R`) loads that cached dataset and
+runs a `predictomics::compare_pipelines()` comparison against a shared
+reference pipeline. Shared logic (data loading, dataset construction,
+reference pipeline definition, comparison execution, plot saving) lives in
+`R/` at the repository root rather than being duplicated across scripts. See
+`analysis/pipeline_comparisons/sdy1276_tiv/README.md` for details and
+assumptions specific to that dataset.
 
 ## Data conventions
 
