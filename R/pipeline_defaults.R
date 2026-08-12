@@ -40,3 +40,32 @@ reference_pipeline_params <- function(genesets, model_inner_folds = 5, model_met
     model_params = list(method = "glmnet", inner_folds = model_inner_folds, metric = model_metric)
   )
 }
+
+#' A "raw gene" pipeline: z-scored gene-level transform, no gene-set
+#' aggregation, the same relaxed variance pre-filter as
+#' `reference_pipeline_params()` (to keep model fitting tractable on ~20,000
+#' raw genes), and an elastic net model.
+#'
+#' Used as the comparator for feature-selection methods that operate on (and
+#' return) individual gene names rather than aggregated gene-set scores -
+#' e.g. the paired RISE/dearseq options in 03_compare_selection.R - since
+#' those selected gene names would not match the reference pipeline's
+#' aggregated (gene-set-named) columns.
+#'
+#' @param model_inner_folds,model_metric As in reference_pipeline_params().
+#' @param variance_top_n Number of genes retained by the variance pre-filter.
+#'   Matches reference_pipeline_params()'s default (7,500) unless overridden.
+raw_gene_reference_params <- function(model_inner_folds = 5, model_metric = "r2",
+                                       variance_top_n = 7500) {
+  list(
+    engineering_params = list(
+      method = "engineer",
+      col_transform = "z",
+      gene_level_fc = FALSE,
+      genesets = NULL,
+      agg_method = "mean"
+    ),
+    selection_params = list(method = "variance", top_n = variance_top_n),
+    model_params = list(method = "glmnet", inner_folds = model_inner_folds, metric = model_metric)
+  )
+}
