@@ -38,12 +38,12 @@ figure_path <- fs::path("output", "figures", "pipeline_comparisons", "sdy1276_ti
 reference_params <- reference_pipeline_params(genesets)
 
 option_choices <- list(
+  "Variance (top 25)" = list(method = "variance", top_n = 25),
   "Variance (top 100)" = list(method = "variance", top_n = 100),
-  "Variance (top 500)" = list(method = "variance", top_n = 500),
-  "Correlation - Spearman (top 100)"   = list(method = "spearman", top_n = 100),
-  "Correlation - Spearman (|r| > 0.3)" = list(method = "spearman", threshold = 0.3),
-  "Correlation - Pearson (top 100)"    = list(method = "pearson", top_n = 100),
-  "Correlation - Pearson (|r| > 0.3)"  = list(method = "pearson", threshold = 0.3),
+  "Correlation - Spearman (top 25)"   = list(method = "spearman", top_n = 25),
+  "Correlation - Spearman (|r| > 0.5)" = list(method = "spearman", threshold = 0.5),
+  "Correlation - Pearson (top 25)"    = list(method = "pearson", top_n = 100),
+  "Correlation - Pearson (|r| > 0.5)"  = list(method = "pearson", threshold = 0.5),
   "Univariate regression screening (threshold = 0)" = list(
     method = "relative_gain", threshold = 0,
     relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345

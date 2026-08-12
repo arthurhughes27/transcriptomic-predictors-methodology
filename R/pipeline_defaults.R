@@ -12,7 +12,8 @@
 
 #' Baseline covariates used throughout the pipeline-comparison analyses
 #' (Chapter 5, Section 5.4): age, sex, and race.
-default_covariates <- c("age", "sex", "race", "ab_p_0")
+# default_covariates <- c("age", "sex", "race", "ab_p_0")
+default_covariates <- c("age", "sex", "race")
 
 #' The reference (minimal-complexity) analytical pipeline.
 #'
