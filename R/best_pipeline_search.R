@@ -382,8 +382,13 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20)
     }
   )
 
+  # No guides = "collect" here: collecting would pool p_fit's legend with
+  # p_stability's panel, pushing it away from the CV plot it belongs to and
+  # over towards the stability panel. Keeping each panel's own guides means
+  # p_fit's legend renders directly to the right of p_fit, not the combined
+  # figure.
   (p_fit + p_stability) +
-    patchwork::plot_layout(ncol = 2, widths = c(1, 1), guides = "collect") +
+    patchwork::plot_layout(ncol = 2, widths = c(1, 1)) +
     patchwork::plot_annotation(
       title = title,
       subtitle = describe_best_pipeline(best),
@@ -391,12 +396,10 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20)
       tag_suffix = ")",
       theme = ggplot2::theme(
         plot.title = ggplot2::element_text(size = 18, face = "bold"),
-        plot.subtitle = ggplot2::element_text(size = 13),
-        legend.position = "bottom"
+        plot.subtitle = ggplot2::element_text(size = 13)
       )
     ) &
     ggplot2::theme(
-      legend.position = "bottom",
       plot.tag = ggplot2::element_text(size = 16, face = "bold")
     )
 }
