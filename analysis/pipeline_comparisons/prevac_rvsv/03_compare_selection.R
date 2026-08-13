@@ -67,10 +67,6 @@ option_choices_geneset <- list(
     method = "relative_gain", threshold = 0,
     relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
   ),
-  "Univariate regression screening (threshold = 0.1)" = list(
-    method = "relative_gain", threshold = 0.1,
-    relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
-  ),
   "Dearseq (geneset, alpha = 0.05)" = list(
     method = "dearseq", dearseq_mode = "classic", dearseq_level = "geneset",
     genesets = genesets, threshold = 0.05

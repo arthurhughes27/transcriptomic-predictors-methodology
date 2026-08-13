@@ -46,7 +46,7 @@ plot_relative_effects <- function(df_category, title) {
   ggplot2::ggplot(df_category, ggplot2::aes(x = .data$delta_r2, y = .data$canonical_option)) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", colour = "grey50") +
     ggplot2::geom_point(
-      ggplot2::aes(colour = .data$dataset_label), size = 3, alpha = 1
+      ggplot2::aes(colour = .data$dataset_label), size = 3, alpha = 0.5
     ) +
     ggplot2::geom_point(
       data = summary_df,

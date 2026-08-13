@@ -81,11 +81,11 @@ gene_level_options <- list(
   "Gene-level: z-score" = list(
     method = "engineer", col_transform = "z", gene_level_fc = FALSE,
     genesets = NULL, agg_method = "mean"
-  ),
-  "Gene-level: fold-change" = list(
-    method = "engineer", col_transform = "none", gene_level_fc = TRUE,
-    genesets = NULL, agg_method = "mean"
-  )
+  )#,
+  # "Gene-level: fold-change" = list(
+  #   method = "engineer", col_transform = "none", gene_level_fc = TRUE,
+  #   genesets = NULL, agg_method = "mean"
+  # )
 )
 
 # The reference pipeline is re-evaluated here on the paired dataset (rather
