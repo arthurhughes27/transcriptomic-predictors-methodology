@@ -70,8 +70,8 @@ default_search_model_params <- function(inner_folds = 5, metric = "r2") {
 #' "Reference" row by `compare_pipelines()`.
 engineering_search_menu <- function(genesets) {
   list(
-    "Gene-level: none"    = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
-    "Gene-level: z-score" = list(method = "engineer", col_transform = "z",    genesets = NULL, agg_method = "mean"),
+    # "Gene-level: none"    = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
+    # "Gene-level: z-score" = list(method = "engineer", col_transform = "z",    genesets = NULL, agg_method = "mean"),
     "Gene-set: median"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "median"),
     "Gene-set: max"       = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "max"),
     "Gene-set: 1st PC"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "pc1"),
