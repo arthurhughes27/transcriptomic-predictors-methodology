@@ -120,20 +120,19 @@ gc()
 reference_params_genewise <- raw_gene_reference_params()
 
 option_choices_genewise <- list(
-  # "Variance (top 2,500)" = list(method = "variance", top_n = 2500),
-  # "Variance (top 10,000)" = list(method = "variance", top_n = 10000),
-  # "Correlation - Spearman (top 2,500)"  = list(method = "spearman", top_n = 2500),
-  # "Correlation - Spearman (|r| > 0.5)"  = list(method = "spearman", threshold = 0.5),
-  # "Correlation - Pearson (top 10,000)"  = list(method = "pearson", top_n = 10000),
-  # "Correlation - Pearson (|r| > 0.5)"   = list(method = "pearson", threshold = 0.5),
-  # "Univariate regression screening (threshold = 0)" = list(
-  #   method = "relative_gain", threshold = 0,
-  #   relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
-  # ),
-  # "Univariate regression screening (threshold = 0.1)" = list(
-  #   method = "relative_gain", threshold = 0.1,
-  #   relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
-  # ),
+  "Variance (top 1,000)" = list(method = "variance", top_n = 500),
+  "Correlation - Spearman (top 2,500)"  = list(method = "spearman", top_n = 500),
+  "Correlation - Spearman (|r| > 0.5)"  = list(method = "spearman", threshold = 0.5),
+  "Correlation - Pearson (top 10,000)"  = list(method = "pearson", top_n = 500),
+  "Correlation - Pearson (|r| > 0.5)"   = list(method = "pearson", threshold = 0.5),
+  "Univariate regression screening (threshold = 0)" = list(
+    method = "relative_gain", threshold = 0,
+    relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
+  ),
+  "Univariate regression screening (threshold = 0.1)" = list(
+    method = "relative_gain", threshold = 0.1,
+    relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
+  ),
   "RISE (top 500)" = list(
     method = "rise", rise_paired = TRUE, top_n = 500,
     rise_power_want_s = 0.8, rise_p_correction = "BH"
