@@ -59,13 +59,13 @@ figure_path <- fs::path("output", "figures", "pipeline_comparisons", "cross_data
 categories <- unique(relative_metrics$category)
 
 for (cat in categories) {
-
+  
   df_category <- relative_metrics %>% dplyr::filter(.data$category == cat)
   cat_label <- category_display_name(cat)
   n_options <- dplyr::n_distinct(df_category$canonical_option)
-
+  
   df_effects <- df_category %>% dplyr::filter(!.data$is_reference)
-
+  
   p_effects <- plot_relative_effects(
     df_effects,
     title = paste0("Relative performance by choice: ", cat_label)
@@ -75,7 +75,7 @@ for (cat in categories) {
     p_effects, figure_path, paste0("delta_r2_dotplot_", cat, ".pdf"),
     width = 10, height = max(3, 0.45 * (n_options - 1) + 1.5)
   )
-
+  
   p_heatmap <- plot_relative_heatmap(
     df_category,
     title = paste0("Relative performance by choice: ", cat_label)
@@ -114,12 +114,12 @@ reference_context <- all_metrics %>%
 
 p_reference_context <- plot_reference_context(
   reference_context,
-  title = "Inherent signal by dataset: baseline vs. reference pipeline"
+  title = "Cross-validation results: baseline and reference pipelines"
 )
 print(p_reference_context)
 save_pipeline_comparison_plot(
   p_reference_context, figure_path, "reference_context.pdf",
-  width = 7, height = 4.5
+  width = 8, height = 4.5
 )
 
 rm(list = ls())

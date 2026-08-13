@@ -100,7 +100,7 @@ plot_relative_heatmap <- function(df_category, title) {
     ggplot2::geom_tile(colour = "white") +
     ggplot2::geom_text(ggplot2::aes(label = .data$rank), size = 3.5) +
     ggplot2::scale_fill_gradient2(
-      low = "#b2182b", mid = "white", high = "#2166ac", midpoint = 0,
+      low = "#b2182b", mid = "white", high = "#8DA0CB", midpoint = 0,
       limits = c(-fill_limit, fill_limit)
     ) +
     ggplot2::labs(
@@ -148,11 +148,12 @@ plot_reference_context <- function(df, title) {
   ) +
     ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.7), width = 0.6) +
     ggplot2::geom_hline(yintercept = 0, colour = "grey30") +
-    ggplot2::scale_fill_manual(values = c(Baseline = "#969696", Reference = "#2166ac")) +
+    ggplot2::scale_fill_manual(values = c(Baseline = "grey75", Reference = "#8DA0CB")) +
     ggplot2::labs(
-      x = NULL, y = expression(R^2),
+      x = NULL, y = expression("Cross-validated " * R^2),
       fill = NULL,
       title = title
     ) +
-    ggplot2::theme_minimal(base_size = 13)
+    ggplot2::theme_minimal(base_size = 13) +
+    theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
 }
