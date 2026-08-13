@@ -9,12 +9,16 @@
 # visualisation.
 #
 # "category" identifies which methodological axis a given comparison
-# varies: "engineering", "selection_geneset", "selection_genewise", or
-# "model". Geneset-level and gene-wise feature selection are kept as two
-# distinct categories (rather than one "selection" category) because they
-# compare against two different reference pipelines (mean-gene-set-
-# aggregated vs. raw-gene; see R/pipeline_defaults.R), so pooling them
-# without that distinction would silently mix two different baselines.
+# varies: "engineering", "engineering_genewise", "selection_geneset",
+# "selection_genewise", or "model". Geneset-level and gene-wise
+# engineering/selection are each kept as two distinct categories (rather
+# than one "engineering"/"selection" category) because the "main" analyses
+# (engineering, selection_geneset, model) are geneset-only - the gene-wise
+# ones are supplementary and, for selection specifically, compare against a
+# different reference pipeline (mean-gene-set-aggregated vs. raw-gene; see
+# R/pipeline_defaults.R) - so pooling them without that distinction would
+# silently mix a main and a supplementary comparison, or two different
+# baselines.
 
 #' Directory where per-comparison metrics tables are cached.
 metrics_dir <- function() {
@@ -25,28 +29,26 @@ metrics_dir <- function() {
 #' `dataset` and `category`, to a dedicated file in `metrics_dir()`.
 #'
 #' Call this once per `run_pipeline_comparison()`/`compare_pipelines()` call
-#' (i.e. once per figure) - so twice within a `03_compare_selection.R`
-#' script (once for the geneset-level comparison, once for the gene-wise
-#' one), once within `04_compare_model.R`, and once or twice within
-#' `02_compare_engineering.R` (twice for sdy1276_tiv/, which splits gene-set
-#' aggregation and gene-level transformation into two separate calls/figures
-#' that are still both the "engineering" axis; once for the two PREVAC
-#' folders, which compare both in a single call).
+#' (i.e. once per figure) - once within each of `02_compare_engineering.R`,
+#' `02b_compare_engineering_genewise.R`, `04_compare_model.R`, and twice
+#' within `03_compare_selection.R`/`03b_compare_selection_genewise.R`'s
+#' pairing (once for the geneset-level comparison, once for the gene-wise
+#' one - each its own script/category, unlike engineering's split).
 #'
-#' Because sdy1276_tiv/02_compare_engineering.R's two calls share the same
-#' `category` ("engineering") but must not overwrite each other's saved
-#' file, `label` (defaulting to `category`) identifies the *file*, while
-#' `category` identifies the *grouping* used when pooling across datasets
-#' (see `load_all_comparison_metrics()`) - so both of that script's saves
-#' still end up tagged `category = "engineering"` in the pooled data,
-#' despite being saved to two different files.
+#' `label` (defaulting to `category`) identifies the *file* a comparison is
+#' saved to, while `category` identifies the *grouping* used when pooling
+#' across datasets (see `load_all_comparison_metrics()`); for every current
+#' script, one `category` maps to exactly one `label`/file per dataset, so
+#' this distinction rarely matters in practice - it exists for the (now
+#' hypothetical) case of a category needing more than one
+#' `compare_pipelines()` call/figure.
 #'
 #' @param res A `predictomics_comparison` object.
 #' @param dataset Character scalar identifying the dataset/vaccine arm,
 #'   e.g. "sdy1276_tiv", "prevac_rvsv", "prevac_ad26mva".
 #' @param category Character scalar identifying the methodological axis
-#'   varied in this comparison: one of "engineering", "selection_geneset",
-#'   "selection_genewise", "model".
+#'   varied in this comparison: one of "engineering", "engineering_genewise",
+#'   "selection_geneset", "selection_genewise", "model".
 #' @param label Character scalar identifying this specific comparison/file,
 #'   for cases where more than one comparison shares the same
 #'   `dataset`/`category` (see Details). Defaults to `category`.

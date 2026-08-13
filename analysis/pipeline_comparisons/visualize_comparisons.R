@@ -1,8 +1,9 @@
 # analysis/pipeline_comparisons/visualize_comparisons.R
 #
 # Cross-dataset visualisation of pipeline-comparison results: for each
-# methodological category (engineering, selection_geneset,
-# selection_genewise, model), compare options fairly across datasets by
+# methodological category (engineering, engineering_genewise,
+# selection_geneset, selection_genewise, model), compare options fairly
+# across datasets by
 # looking at delta_r2 (each option's R2 minus its own comparison's
 # reference R2) rather than raw R2 - see R/metrics_analysis.R for why a
 # difference, computed within each comparison before pooling, is the fair
@@ -22,7 +23,7 @@
 #     category = "model"), participating in the within-dataset ranking like
 #     any other option, since it's a real, valid choice for that category.
 #
-# That's 4 categories x 2 plot types = 8 figures, plus one further figure
+# That's 5 categories x 2 plot types = 10 figures, plus one further figure
 # (see below), saved to output/figures/pipeline_comparisons/cross_dataset/.
 #
 # A ninth figure, produced last, puts the above into context: a grouped bar
@@ -91,19 +92,21 @@ for (cat in categories) {
 #
 # ONLY category == "model" is used: its Reference/Baseline rows are fit on
 # the `single` (day-1/day-7-only) dataset in every dataset folder, with no
-# ambiguity about which underlying sample was used. "engineering" is NOT
-# used for this: sdy1276_tiv/02_compare_engineering.R fits the same
-# geneset-mean reference pipeline TWICE, in two separate compare_pipelines()
-# calls (one on `single`, one on `paired` restricted to post-treatment rows
-# - see that script's header) - if those two fits don't agree exactly, that
-# is a real discrepancy to go investigate and fix at the data-construction
-# level (most likely: `single` and `paired`'s independent complete-case gene
-# filtering in 01_prepare_data.R admit slightly different gene sets, and/or
-# different participants), not something to paper over here by averaging.
-# "selection_geneset" has the same issue for sdy1276_tiv specifically (its
-# 03_compare_selection.R also uses the `paired`-restricted sample, for the
-# same dearseq-paired-mode reason). "model" is the only category whose
-# reference is unambiguous across all three dataset folders.
+# ambiguity about which underlying sample was used. "engineering" now also
+# fits the reference pipeline on `single` only in every folder (since
+# 02_compare_engineering.R was split into a geneset-only main comparison and
+# a separate 02b_compare_engineering_genewise.R supplementary one - see that
+# split's rationale in each folder's README.md), but "selection_geneset"
+# still has a sample-ambiguity issue for sdy1276_tiv specifically: its
+# 03_compare_selection.R uses the `paired`-restricted sample (needed for
+# dearseq's paired mode), so its reference fit there need not exactly match
+# a `single`-only fit of the same pipeline - if those two ever disagree,
+# that's a real discrepancy to go investigate at the data-construction level
+# (most likely: `single` and `paired`'s independent complete-case gene
+# filtering in 01_prepare_data.R admit slightly different gene sets and/or
+# participants), not something to paper over here by averaging. "model" is
+# used for this figure precisely because it's the one category guaranteed
+# unambiguous across all three dataset folders.
 
 reference_context <- all_metrics %>%
   dplyr::filter(.data$category == "model", .data$role %in% c("baseline", "reference")) %>%

@@ -13,6 +13,8 @@ source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "01_prepare_d
 
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "02_compare_engineering.R"))
 
+source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "02b_compare_engineering_genewise.R"))
+
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "03_compare_selection.R"))
 
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "03b_compare_selection_genewise.R"))
