@@ -1,31 +1,25 @@
 # analysis/pipeline_comparisons/prevac_ad26mva/03_compare_selection.R
 #
 # Compare feature-selection choices for predicting PREVAC Ad26/MVA
-# (+ placebo) day-180 antibody titer from day-7 gene expression.
+# (+ placebo) day-180 antibody titer from day-7 gene expression, against
+# the reference pipeline (mean gene-set aggregation; see
+# R/pipeline_defaults.R::reference_pipeline_params()). This is the ONLY
+# feature-selection comparison treated as a "reference" comparison for this
+# dataset - see 03b_compare_selection_genewise.R for the supplementary,
+# gene-wise (raw gene, no aggregation) comparison, which uses a different
+# reference pipeline and is not used to characterise "the" reference
+# approach for this dataset (e.g. in
+# analysis/pipeline_comparisons/visualize_comparisons.R's baseline/reference
+# context figure).
 #
-# Two comparisons are run, reported as two separate figures, split by
-# engineering scale (as in sdy1276_tiv/03_compare_selection.R): RISE always
-# screens the raw gene-level matrix and is never compatible with gene-set
-# aggregation; dearseq's gene-level mode (`dearseq_level = "gene"`) is
-# likewise never compatible with gene-set aggregation. So a
-# geneset-aggregated reference can only host dearseq's geneset-level mode,
-# while a raw-gene reference can host both RISE and dearseq's gene-level
-# mode.
+# Selection methods score each aggregated feature: variance filtering,
+# absolute correlation (Spearman/Pearson), univariate regression-based
+# screening ("relative gain"), and dearseq's "classic" mode at the geneset
+# level (`dearseq_level = "geneset"`).
 #
-#   1. Geneset-level: reference is the usual mean-BTM-aggregated pipeline
-#      (`reference_pipeline_params()`). Selection methods score each
-#      aggregated feature: variance filtering, absolute correlation
-#      (Spearman/Pearson), univariate regression-based screening ("relative
-#      gain"), and dearseq's "classic" mode at the geneset level
-#      (`dearseq_level = "geneset"`).
-#   2. Gene-wise: reference is z-score only, no gene-set aggregation
-#      (`raw_gene_reference_params()`). The same selection methods are
-#      compared, plus RISE and dearseq's "classic" mode at the gene level.
-#
-# Unlike SDY1276 (TIV), PREVAC has a placebo arm, so RISE and dearseq are
-# used here in their "classic" mode rather than "paired": RISE contrasts
-# `treatment == 1` (Ad26/MVA) vs. `treatment == 0` (placebo); dearseq's
-# default `dearseq_mode = "classic"` does the same. Neither needs
+# PREVAC has a placebo arm, so dearseq is used here in its "classic" mode:
+# `dearseq_mode = "classic"` (the default) contrasts `treatment == 1`
+# (Ad26/MVA) vs. `treatment == 0` (placebo). This needs no
 # `individual_id`/`timepoint` or predictomics' paired row-discard handling
 # (see sdy1276_tiv/03_compare_selection.R for that machinery) - "classic"
 # mode operates on the single (day-7-only) dataset directly, with every row
@@ -51,8 +45,6 @@ single <- analysis_data$single
 genesets <- analysis_data$genesets
 
 figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_ad26mva")
-
-## ---- 1. Geneset-level feature selection ------------------------------------
 
 reference_params_geneset <- reference_pipeline_params(genesets)
 
@@ -88,48 +80,6 @@ p_geneset <- plot(res_geneset, metric = "R2") +
 print(p_geneset)
 
 save_pipeline_comparison_plot(p_geneset, figure_path, "comparison_selection_geneset_prevac_ad26mva.pdf")
-
-gc()
-
-## ---- 2. Gene-wise (raw) feature selection ----------------------------------
-
-reference_params_genewise <- raw_gene_reference_params()
-
-option_choices_genewise <- list(
-  "Variance (top 500)" = list(method = "variance", top_n = 500),
-  "Correlation - Spearman (top 500)"  = list(method = "spearman", top_n = 500),
-  "Correlation - Spearman (|r| > 0.5)"  = list(method = "spearman", threshold = 0.5),
-  "Correlation - Pearson (top 500)"  = list(method = "pearson", top_n = 500),
-  "Correlation - Pearson (|r| > 0.5)"   = list(method = "pearson", threshold = 0.5),
-  "Univariate regression screening (threshold = 0)" = list(
-    method = "relative_gain", threshold = 0,
-    relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
-  ),
-  "RISE (top 500)" = list(
-    method = "rise", top_n = 500,
-    rise_power_want_s = 0.8, rise_p_correction = "BH"
-  ),
-  "Dearseq (gene, alpha = 0.05)" = list(
-    method = "dearseq", dearseq_mode = "classic", dearseq_level = "gene",
-    threshold = 0.05
-  )
-)
-
-res_genewise <- run_pipeline_comparison(
-  X = single$X, Y = single$Y, covariates = single$covariates,
-  treatment = single$treatment,
-  option_type = "selection", option_choices = option_choices_genewise,
-  reference_params = reference_params_genewise
-)
-
-save_comparison_metrics(res_genewise, dataset = "prevac_ad26mva", category = "selection_genewise")
-
-p_genewise <- plot(res_genewise, metric = "R2") +
-  ggtitle("Pipeline comparison: gene-wise feature selection (PREVAC Ad26/MVA)")
-
-print(p_genewise)
-
-save_pipeline_comparison_plot(p_genewise, figure_path, "comparison_selection_genewise_prevac_ad26mva.pdf")
 
 gc()
 rm(list = ls())
