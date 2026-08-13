@@ -46,6 +46,7 @@ run_pipeline_comparison <- function(X, Y, covariates,
     seed = seed,
     outside_cv = FALSE,
     timepoint = timepoint,
-    individual_id = individual_id
+    individual_id = individual_id,
+    diagnostics = "summary"
   )
 }
