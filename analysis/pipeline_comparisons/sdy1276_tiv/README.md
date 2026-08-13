@@ -14,9 +14,10 @@ scripts under `analysis/application/`.
    if the upstream processed data (`data/df_merged_all.rds`,
    `data/BTM_processed.rds`) changes.
 2. `02_compare_engineering.R`, `03_compare_selection.R`, `04_compare_model.R`
-   — each independently loads the cached dataset and runs one
-   `predictomics::compare_pipelines()` comparison (or, for feature
-   engineering, two — see below), saving a figure to
+   — each independently loads the cached dataset and runs one or more
+   `predictomics::compare_pipelines()` comparisons (`04_compare_model.R`
+   runs one; `02_compare_engineering.R` and `03_compare_selection.R` each
+   run two — see below), saving a figure per comparison to
    `output/figures/pipeline_comparisons/sdy1276_tiv/`.
 
 ## Design notes / decisions made without the ability to run R
@@ -40,30 +41,32 @@ before relying on the output:
   it. If you intended `ab_p_0` to be included, adjust
   `R/pipeline_defaults.R::default_covariates`.
 - **Feature selection: classic RISE/dearseq omitted; paired RISE/dearseq
-  included.** RISE's and dearseq's *classic* modes need a treatment-vs-control
-  contrast, which SDY1276 TIV doesn't have (single arm). Their *paired*
-  modes instead contrast each participant's baseline (day 0) vs. day-1
-  expression, which this dataset does have, and are compared in
-  `03_compare_selection.R`'s second section. As of predictomics' "Harmonise
-  dearseq and RISE paired-mode row handling" change, both paired modes
-  behave identically: screening uses both timepoints, then pre-vaccination
-  rows are automatically discarded before modelling. They're still
-  implemented here as an explicit two-step process (select on the paired
-  data via `run_selection()`, then evaluate the selected genes on the
-  single/day-1 dataset via `compare_pipelines(option_type = "predictors")`)
-  rather than folded into the main `option_type = "selection"` comparison,
-  for two other reasons: (1) `compare_pipelines()`'s row-parity handling
-  (restricting non-paired pipelines to post-vaccination rows so they're
-  comparable to a paired one) only applies for `option_type =
-  "engineering"`, not `"selection"` - a direct `"selection"`-type call would
-  fit the reference/baseline rows on pseudo-replicated (both-arms,
-  non-independent) data; and (2) RISE/dearseq select individual gene names,
-  which don't line up with the reference pipeline's gene-SET-aggregated
-  columns. See that section's comment in `03_compare_selection.R` for the
-  full reasoning, and `R/pipeline_defaults.R::raw_gene_reference_params()`
-  for the (raw, non-aggregated) reference pipeline they're compared against.
-  Classic RISE/dearseq (treatment vs. control) are still a planned addition
-  for the placebo-controlled Ebola/PREVAC datasets.
+  included, split by engineering scale.** RISE's and dearseq's *classic*
+  modes need a treatment-vs-control contrast, which SDY1276 TIV doesn't have
+  (single arm); those are a planned addition for the placebo-controlled
+  Ebola/PREVAC datasets. Their *paired* modes instead contrast each
+  participant's baseline (day 0) vs. day-1 expression, which this dataset
+  does have. `03_compare_selection.R` now runs two `option_type =
+  "selection"` comparisons directly against the paired dataset: (1)
+  geneset-level, against the usual mean-aggregated reference, including
+  dearseq's paired mode at `dearseq_level = "geneset"` (RISE is excluded
+  here - `predictomics::predict_cv()` rejects `rise_paired = TRUE` combined
+  with geneset engineering outright, since paired RISE screening always
+  operates on the raw gene-level matrix); (2) gene-wise, against
+  `R/pipeline_defaults.R::raw_gene_reference_params()` (z-score only, no
+  aggregation), including both paired RISE and dearseq's paired mode at
+  `dearseq_level = "gene"`, with `top_n` thresholds rescaled ~100x from (1)
+  to the ~20,000-raw-gene scale. Both comparisons rely on predictomics'
+  paired row-discard parity handling (`compare_pipelines()`'s
+  `.discards_pretreatment_rows()`/row-parity logic): any option that
+  discards pre-treatment rows internally (`rise_paired`, `dearseq_mode =
+  "paired"`) screens on both arms then models on post-treatment rows only,
+  while every other pipeline in the same call - including the reference and
+  baseline - is automatically restricted to post-treatment (day-1) rows, so
+  mixed paired/non-paired comparisons are safe in a single call. (This
+  replaces an earlier, more convoluted two-step workaround that was needed
+  before predictomics generalized this row-parity handling beyond
+  `option_type = "engineering"`.)
 - **Gene-level fold-change.** Requires paired baseline (day 0) + post (day 1)
   expression per participant, unlike the rest of the pipeline (day-1
   expression only). It is therefore evaluated as a separate
