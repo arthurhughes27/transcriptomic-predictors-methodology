@@ -18,3 +18,5 @@ source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "03_compare_s
 source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "03b_compare_selection_genewise.R"))
 
 source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "04_compare_model.R"))
+
+source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "05_find_best_model.R"))
