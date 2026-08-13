@@ -75,9 +75,9 @@ option_choices_geneset <- list(
   "Variance (top 25)" = list(method = "variance", top_n = 25),
   "Variance (top 100)" = list(method = "variance", top_n = 100),
   "Correlation - Spearman (top 25)"   = list(method = "spearman", top_n = 25),
-  "Correlation - Spearman (threshold = 0.5)" = list(method = "spearman", threshold = 0.5),
+  "Correlation - Spearman (|r| > 0.5)" = list(method = "spearman", threshold = 0.5),
   "Correlation - Pearson (top 25)"    = list(method = "pearson", top_n = 100),
-  "Correlation - Pearson (threshold = 0.5)"  = list(method = "pearson", threshold = 0.5),
+  "Correlation - Pearson (|r| > 0.5)"  = list(method = "pearson", threshold = 0.5),
   "Univariate regression screening (threshold = 0)" = list(
     method = "relative_gain", threshold = 0,
     relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
@@ -120,18 +120,14 @@ gc()
 reference_params_genewise <- raw_gene_reference_params()
 
 option_choices_genewise <- list(
-  "Variance (top 1,000)" = list(method = "variance", top_n = 500),
-  "Correlation - Spearman (top 2,500)"  = list(method = "spearman", top_n = 500),
+  "Variance (top 500)" = list(method = "variance", top_n = 500),
+  "Correlation - Spearman (top 500)"  = list(method = "spearman", top_n = 500),
   "Correlation - Spearman (|r| > 0.5)"  = list(method = "spearman", threshold = 0.5),
-  "Correlation - Pearson (top 10,000)"  = list(method = "pearson", top_n = 500),
+  "Correlation - Pearson (top 500)"  = list(method = "pearson", top_n = 500),
   "Correlation - Pearson (|r| > 0.5)"   = list(method = "pearson", threshold = 0.5),
   "Univariate regression screening (threshold = 0)" = list(
     method = "relative_gain", threshold = 0,
-    relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
-  ),
-  "Univariate regression screening (threshold = 0.1)" = list(
-    method = "relative_gain", threshold = 0.1,
-    relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
+    relative_gain_inner_folds = 5, relative_gain_metric = "rmse", 
   ),
   "RISE (top 500)" = list(
     method = "rise", rise_paired = TRUE, top_n = 500,
