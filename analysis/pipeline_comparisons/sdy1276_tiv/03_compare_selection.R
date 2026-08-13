@@ -81,11 +81,11 @@ option_choices_geneset <- list(
   "Correlation - Pearson (|r| > 0.5)"  = list(method = "pearson", threshold = 0.5),
   "Univariate regression screening (threshold = 0)" = list(
     method = "relative_gain", threshold = 0,
-    relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
+    relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
   ),
   "Univariate regression screening (threshold = 0.1)" = list(
     method = "relative_gain", threshold = 0.1,
-    relative_gain_inner_folds = 5, relative_gain_metric = "rmse", relative_gain_seed = 12345
+    relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
   ),
   "Dearseq (alpha = 0.05)" = list(
     method = "dearseq", dearseq_mode = "paired", dearseq_level = "geneset",
@@ -130,7 +130,7 @@ option_choices_genewise <- list(
   "Correlation - Pearson (|r| > 0.5)"   = list(method = "pearson", threshold = 0.5),
   "Univariate regression screening (threshold = 0)" = list(
     method = "relative_gain", threshold = 0,
-    relative_gain_inner_folds = 5, relative_gain_metric = "rmse", 
+    relative_gain_inner_folds = 5, relative_gain_metric = "rmse" 
   ),
   "RISE (top 500)" = list(
     method = "rise", rise_paired = TRUE, top_n = 500,
