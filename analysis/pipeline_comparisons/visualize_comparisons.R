@@ -70,7 +70,7 @@ for (cat in categories) {
   print(p_heatmap)
   save_pipeline_comparison_plot(
     p_heatmap, figure_path, paste0("delta_r2_heatmap_", cat, ".pdf"),
-    width = 6, height = max(3, 0.45 * n_options + 1.5)
+    width = 8, height = max(3, 0.45 * n_options + 1.5)
   )
 }
 

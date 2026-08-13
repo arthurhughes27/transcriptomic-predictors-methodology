@@ -101,5 +101,6 @@ plot_relative_heatmap <- function(df_category, title) {
       title = title
     ) +
     ggplot2::theme_minimal(base_size = 13) +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 20, hjust = 1))
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 20, hjust = 1),
+                   plot.title = ggplot2::element_text(size = 12))
 }
