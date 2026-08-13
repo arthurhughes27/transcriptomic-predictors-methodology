@@ -1,0 +1,295 @@
+# R/best_pipeline_search.R
+#
+# A "smart", targeted search for the best-performing analytical pipeline
+# per dataset, rather than an exhaustive grid over every
+# engineering x selection x model combination.
+#
+# Implements a three-round GREEDY COORDINATE-ASCENT search through the
+# pipeline stages, in their natural execution order (engineering ->
+# selection -> model):
+#   1. Compare engineering options against the usual mean-aggregation
+#      reference (R/pipeline_defaults.R::reference_pipeline_params()) -
+#      pick the single best (by R2).
+#   2. Compare selection options, with engineering FIXED to round 1's
+#      winner (not the default reference) - pick the single best. The
+#      selection menu offered depends on round 1's winner: if it aggregates
+#      into gene sets, the geneset-level menu is used; if not (raw genes),
+#      the gene-wise menu is used instead - these are two different,
+#      mutually incompatible feature spaces (see
+#      analysis/pipeline_comparisons/sdy1276_tiv/03_compare_selection.R's
+#      header for why RISE/gene-level dearseq specifically require raw,
+#      unaggregated features).
+#   3. Compare model options, with engineering AND selection FIXED to
+#      rounds 1-2's winners - pick the single best.
+#
+# This costs 3 compare_pipelines() calls per dataset (one per round) instead
+# of an exhaustive grid (~7 engineering x ~7 selection x ~5 model options
+# per dataset). The trade-off: it's greedy, not exhaustive - each round
+# conditions only on the PREVIOUS rounds' winners, so it can miss a
+# combination where a locally-suboptimal earlier choice would have paired
+# better with a later one (an interaction a one-round-at-a-time design
+# can't see). That's the accepted cost of a targeted search over an
+# exhaustive one.
+#
+# IMPORTANT SCOPE LIMITATION: this search runs entirely on the SINGLE
+# (post-vaccination-only) dataset, for every dataset - never on the paired
+# (baseline + post) dataset, even where one exists. This keeps every
+# round's reference/options compared on an identical, consistent sample
+# throughout the whole search (see
+# analysis/pipeline_comparisons/visualize_comparisons.R's reference-context
+# section for why that consistency matters - the same "don't mix samples"
+# principle applies here). The consequence: RISE and dearseq's *paired*
+# modes (which need individual_id/timepoint from the paired dataset) are
+# never offered as selection candidates for SDY1276 (TIV), which has no
+# placebo arm to power their *classic* mode instead - SDY1276's selection
+# menus are therefore limited to variance/correlation/relative-gain.
+# PREVAC's two folders do have a placebo arm, so RISE and dearseq's
+# *classic* mode (contrasting treatment vs. placebo, needing only
+# `treatment`, not pairing) are available there at both scales - pass
+# `dearseq_mode = "classic"` to find_best_pipeline() to enable them.
+#
+# This module defines fresh option menus for all three search rounds
+# (rather than re-reading option lists or saved results from
+# 02_compare_engineering.R/03_compare_selection.R), so it has no dependency
+# on those scripts' exact current option labels - engineering's search
+# menu below intentionally mirrors Table 5.2's full option set, independent
+# of whatever 02_compare_engineering.R happens to currently compare.
+
+#' Elastic net, the default model used while searching the engineering and
+#' selection axes (rounds 1-2), before model choice is itself searched
+#' (round 3).
+default_search_model_params <- function(inner_folds = 5, metric = "r2") {
+  list(method = "glmnet", inner_folds = inner_folds, metric = metric)
+}
+
+#' Engineering options compared in round 1. Same menu for every dataset
+#' (Table 5.2's full set): no transform/no aggregation, z-score/no
+#' aggregation, and the five gene-set aggregation methods. Mean aggregation
+#' is deliberately excluded as an explicit option - it's the reference
+#' itself (`reference_pipeline_params()`), already evaluated as the
+#' "Reference" row by `compare_pipelines()`.
+engineering_search_menu <- function(genesets) {
+  list(
+    "Gene-level: none"    = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
+    "Gene-level: z-score" = list(method = "engineer", col_transform = "z",    genesets = NULL, agg_method = "mean"),
+    "Gene-set: median"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "median"),
+    "Gene-set: max"       = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "max"),
+    "Gene-set: 1st PC"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "pc1"),
+    "Gene-set: GSVA"      = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "gsva", gsva_min_size = 2),
+    "Gene-set: ssGSEA"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "ssgsea", ssgsea_min_size = 2)
+  )
+}
+
+#' Selection options compared in round 2, when round 1's winning engineering
+#' AGGREGATES into gene sets (i.e. its `genesets` element is not NULL).
+#'
+#' @param genesets Named list of gene sets, forwarded to the dearseq option.
+#' @param dearseq_mode "classic" to include dearseq at the geneset level
+#'   (requires `treatment`; PREVAC datasets), or NULL to omit it entirely
+#'   (SDY1276 - see this file's header for why "paired" mode isn't offered
+#'   in this search).
+selection_geneset_search_menu <- function(genesets, dearseq_mode = NULL) {
+  menu <- list(
+    "Variance (top 25)" = list(method = "variance", top_n = 25),
+    "Variance (top 100)" = list(method = "variance", top_n = 100),
+    "Correlation - Spearman (top 25)"    = list(method = "spearman", top_n = 25),
+    "Correlation - Spearman (|r| > 0.5)" = list(method = "spearman", threshold = 0.5),
+    "Correlation - Pearson (top 25)"     = list(method = "pearson", top_n = 25),
+    "Correlation - Pearson (|r| > 0.5)"  = list(method = "pearson", threshold = 0.5),
+    "Univariate regression screening (threshold = 0)" = list(
+      method = "relative_gain", threshold = 0,
+      relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
+    )
+  )
+  if (!is.null(dearseq_mode)) {
+    menu[["Dearseq (geneset, alpha = 0.05)"]] <- list(
+      method = "dearseq", dearseq_mode = dearseq_mode, dearseq_level = "geneset",
+      genesets = genesets, threshold = 0.05
+    )
+  }
+  menu
+}
+
+#' Selection options compared in round 2, when round 1's winning engineering
+#' does NOT aggregate (raw genes).
+#'
+#' @param dearseq_mode As for `selection_geneset_search_menu()`; also gates
+#'   RISE, which is included alongside dearseq whenever `dearseq_mode` is
+#'   supplied, since both need a treatment/placebo contrast SDY1276 doesn't
+#'   have.
+selection_genewise_search_menu <- function(dearseq_mode = NULL) {
+  menu <- list(
+    "Variance (top 500)" = list(method = "variance", top_n = 500),
+    "Correlation - Spearman (top 500)"   = list(method = "spearman", top_n = 500),
+    "Correlation - Spearman (|r| > 0.5)" = list(method = "spearman", threshold = 0.5),
+    "Correlation - Pearson (top 500)"    = list(method = "pearson", top_n = 500),
+    "Correlation - Pearson (|r| > 0.5)"  = list(method = "pearson", threshold = 0.5),
+    "Univariate regression screening (threshold = 0)" = list(
+      method = "relative_gain", threshold = 0,
+      relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
+    )
+  )
+  if (!is.null(dearseq_mode)) {
+    menu[["RISE (top 500)"]] <- list(
+      method = "rise", top_n = 500, rise_power_want_s = 0.8, rise_p_correction = "BH"
+    )
+    menu[["Dearseq (gene, alpha = 0.05)"]] <- list(
+      method = "dearseq", dearseq_mode = dearseq_mode, dearseq_level = "gene",
+      threshold = 0.05
+    )
+  }
+  menu
+}
+
+#' Model options compared in round 3. Same menu for every dataset.
+model_search_menu <- function(inner_folds = 5, metric = "r2") {
+  list(
+    "Linear regression"         = list(method = "lm", inner_folds = inner_folds, metric = metric),
+    "Lasso"                     = list(method = "lasso", inner_folds = inner_folds, metric = metric),
+    "Ridge"                     = list(method = "ridge", inner_folds = inner_folds, metric = metric),
+    "Random forest"             = list(method = "ranger", inner_folds = inner_folds, metric = metric),
+    "Support vector regression" = list(method = "svr", inner_folds = inner_folds, metric = metric)
+  )
+}
+
+#' Pick the best-performing row (by R2) among a compare_pipelines() result's
+#' reference and option rows (excluding "baseline", which isn't a candidate
+#' pipeline choice for any of the three search rounds).
+#'
+#' @return A one-row data frame with columns `pipeline`, `role`, `R2`.
+.pick_round_winner <- function(res) {
+  candidates <- res$results[res$results$role %in% c("reference", "option"), ]
+  candidates[which.max(candidates$R2), c("pipeline", "role", "R2")]
+}
+
+#' Run the three-round greedy coordinate-ascent search described in this
+#' file's header, for one dataset.
+#'
+#' @param X,Y,covariates,treatment As for `run_pipeline_comparison()`.
+#'   Should be the SINGLE (post-vaccination-only) dataset's
+#'   X/Y/covariates(/treatment) for the dataset being searched - never the
+#'   paired dataset (see this file's header).
+#' @param genesets Named list of gene sets (see `R/data_io.R::load_genesets()`).
+#' @param dearseq_mode "classic" to make RISE and dearseq available as
+#'   selection candidates (requires `treatment`; PREVAC datasets), or NULL
+#'   to omit them entirely (SDY1276).
+#'
+#' @return A list with elements:
+#'   \describe{
+#'     \item{engineering_params, selection_params, model_params}{The winning
+#'       spec for each stage. `selection_params` may be `NULL`, meaning no
+#'       selection step at all won round 2 (subject to the relaxed
+#'       variance-prefilter fallback described in this function's body).}
+#'     \item{winners}{A list of the three rounds' winner rows (from
+#'       `.pick_round_winner()`), for reference.}
+#'     \item{summary}{A data frame with one row per round: round label,
+#'       winner, role ("reference" or "option"), R2.}
+#'     \item{round_results}{The three raw `predictomics_comparison` objects
+#'       (named `engineering`, `selection`, `model`), so the winning fit for
+#'       any round can be recovered via
+#'       `round_results[[stage]]$fits[[winners[[stage]]$pipeline]]`.}
+#'   }
+find_best_pipeline <- function(X, Y, covariates, treatment = NULL, genesets,
+                                dearseq_mode = NULL) {
+
+  model_params_default <- default_search_model_params()
+
+  ## ---- Round 1: engineering ------------------------------------------------
+
+  reference_params1 <- reference_pipeline_params(genesets)
+
+  res1 <- run_pipeline_comparison(
+    X = X, Y = Y, covariates = covariates, treatment = treatment,
+    option_type = "engineering",
+    option_choices = engineering_search_menu(genesets),
+    reference_params = reference_params1
+  )
+
+  winner1 <- .pick_round_winner(res1)
+  engineering_params <- if (winner1$role == "reference") {
+    reference_params1$engineering_params
+  } else {
+    engineering_search_menu(genesets)[[winner1$pipeline]]
+  }
+
+  aggregates <- !is.null(engineering_params$genesets)
+
+  ## ---- Round 2: selection, conditioned on round 1's winner -----------------
+
+  # If the winning engineering doesn't aggregate, fitting directly on
+  # ~20,000 raw genes with NO selection at all can run into the same
+  # computational problems raw_gene_reference_params() exists to avoid, so
+  # this round's own "no selection" reference falls back to the same
+  # relaxed variance pre-filter in that case, exactly as
+  # raw_gene_reference_params() does.
+  selection_params_round2_reference <- if (aggregates) {
+    NULL
+  } else {
+    raw_gene_reference_params()$selection_params
+  }
+
+  reference_params2 <- list(
+    engineering_params = engineering_params,
+    selection_params   = selection_params_round2_reference,
+    model_params        = model_params_default
+  )
+
+  selection_menu <- if (aggregates) {
+    selection_geneset_search_menu(genesets, dearseq_mode = dearseq_mode)
+  } else {
+    selection_genewise_search_menu(dearseq_mode = dearseq_mode)
+  }
+
+  res2 <- run_pipeline_comparison(
+    X = X, Y = Y, covariates = covariates, treatment = treatment,
+    option_type = "selection",
+    option_choices = selection_menu,
+    reference_params = reference_params2
+  )
+
+  winner2 <- .pick_round_winner(res2)
+  selection_params <- if (winner2$role == "reference") {
+    reference_params2$selection_params
+  } else {
+    selection_menu[[winner2$pipeline]]
+  }
+
+  ## ---- Round 3: model, conditioned on rounds 1-2's winners ------------------
+
+  reference_params3 <- list(
+    engineering_params = engineering_params,
+    selection_params   = selection_params,
+    model_params        = model_params_default
+  )
+
+  res3 <- run_pipeline_comparison(
+    X = X, Y = Y, covariates = covariates, treatment = treatment,
+    option_type = "model",
+    option_choices = model_search_menu(),
+    reference_params = reference_params3
+  )
+
+  winner3 <- .pick_round_winner(res3)
+  model_params <- if (winner3$role == "reference") {
+    reference_params3$model_params
+  } else {
+    model_search_menu()[[winner3$pipeline]]
+  }
+
+  summary <- data.frame(
+    round  = c("1. engineering", "2. selection", "3. model"),
+    winner = c(winner1$pipeline, winner2$pipeline, winner3$pipeline),
+    role   = c(winner1$role, winner2$role, winner3$role),
+    R2     = c(winner1$R2, winner2$R2, winner3$R2),
+    stringsAsFactors = FALSE
+  )
+
+  list(
+    engineering_params = engineering_params,
+    selection_params   = selection_params,
+    model_params        = model_params,
+    winners             = list(engineering = winner1, selection = winner2, model = winner3),
+    summary             = summary,
+    round_results        = list(engineering = res1, selection = res2, model = res3)
+  )
+}

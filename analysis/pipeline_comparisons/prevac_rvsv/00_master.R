@@ -18,3 +18,5 @@ source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "03_compare_s
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "03b_compare_selection_genewise.R"))
 
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "04_compare_model.R"))
+
+source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "05_find_best_model.R"))
