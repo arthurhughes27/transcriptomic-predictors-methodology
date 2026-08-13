@@ -76,7 +76,7 @@ hamburg_single <- build_prediction_dataset(
   timepoint = "P+7D",
   response_col = "ab_p_180",
   covariate_names = default_covariates,
-  log_response = TRUE
+  log_response = F
 )
 
 X_validation <- hamburg_single$X
