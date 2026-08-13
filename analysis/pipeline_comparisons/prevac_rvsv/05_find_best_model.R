@@ -77,7 +77,7 @@ p_summary <- plot_best_model_summary(best_fit, best, title = "PREVAC (rVSV): bes
 print(p_summary)
 ggsave(
   fs::path(figure_path, "best_model_summary_prevac_rvsv.pdf"),
-  p_summary, width = 12, height = 5, dpi = 300
+  p_summary, width = 12, height = 6, dpi = 300
 )
 
 rm(list = ls())
