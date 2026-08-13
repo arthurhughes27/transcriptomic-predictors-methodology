@@ -66,7 +66,7 @@ if (!is.null(p_fit)) {
 
 if (!is.null(best$selection_params)) {
   p_stability <- tryCatch(
-    plot_selection_stability(best_fit, top_n = 20, type = "explicit"),
+    plot_selection_stability(best_fit, top_n = 20, type = "explicit", plot_type = "frequency"),
     error = function(e) {
       message("[best model] plot_selection_stability() failed: ", conditionMessage(e))
       NULL
