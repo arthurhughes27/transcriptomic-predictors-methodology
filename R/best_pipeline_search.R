@@ -390,10 +390,31 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20)
   p_stability <- tryCatch(
     plot_selection_stability(best_fit, top_n = selection_top_n, type = stability_type, plot_type = "frequency"),
     error = function(e) {
-      message("[best model] plot_selection_stability() failed: ", conditionMessage(e))
-      ggplot2::ggplot() +
-        ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
-        ggplot2::theme_void()
+      message("[best model] plot_selection_stability(type = '", stability_type,
+              "') failed: ", conditionMessage(e))
+      # A filter selection step (dearseq/RISE/etc.) has explicit per-fold
+      # diagnostics only when it actually ran as a distinct filter stage;
+      # if that's unavailable for some reason, fall back to the model's own
+      # embedded selection diagnostics (e.g. elastic net's non-zero
+      # coefficients per fold) rather than giving up on the panel entirely -
+      # any glmnet/lasso/ridge model here still performs its own per-fold
+      # selection, whether or not a separate filter step preceded it.
+      if (stability_type == "explicit") {
+        tryCatch(
+          plot_selection_stability(best_fit, top_n = selection_top_n, type = "embedded", plot_type = "frequency"),
+          error = function(e2) {
+            message("[best model] plot_selection_stability(type = 'embedded') fallback also failed: ",
+                    conditionMessage(e2))
+            ggplot2::ggplot() +
+              ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
+              ggplot2::theme_void()
+          }
+        )
+      } else {
+        ggplot2::ggplot() +
+          ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
+          ggplot2::theme_void()
+      }
     }
   )
 
