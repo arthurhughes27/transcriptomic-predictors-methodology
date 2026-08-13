@@ -363,21 +363,24 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20)
       ggplot2::theme_void()
   })
 
-  p_stability <- if (is.null(best$selection_params)) {
-    ggplot2::ggplot() +
-      ggplot2::annotate("text", x = 0, y = 0, label = "No selection step in winning pipeline") +
-      ggplot2::theme_void()
-  } else {
-    tryCatch(
-      plot_selection_stability(best_fit, top_n = selection_top_n, type = "explicit", plot_type = "frequency"),
-      error = function(e) {
-        message("[best model] plot_selection_stability() failed: ", conditionMessage(e))
-        ggplot2::ggplot() +
-          ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
-          ggplot2::theme_void()
-      }
-    )
-  }
+  # A within-fold filter selection step (best$selection_params not NULL,
+  # e.g. variance/correlation/RISE/dearseq) is diagnosed via its own
+  # per-fold selection record (type = "explicit"). When the winning
+  # pipeline has NO such filter step, stability is instead read off the
+  # model's own per-fold embedded selection (e.g. lasso/glmnet non-zero
+  # coefficients; type = "embedded") - there's still a selection step to
+  # diagnose, just one performed by the model rather than a separate filter.
+  stability_type <- if (is.null(best$selection_params)) "embedded" else "explicit"
+
+  p_stability <- tryCatch(
+    plot_selection_stability(best_fit, top_n = selection_top_n, type = stability_type, plot_type = "frequency"),
+    error = function(e) {
+      message("[best model] plot_selection_stability() failed: ", conditionMessage(e))
+      ggplot2::ggplot() +
+        ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
+        ggplot2::theme_void()
+    }
+  )
 
   (p_fit + p_stability) +
     patchwork::plot_layout(ncol = 2, widths = c(1, 1), guides = "collect") +
