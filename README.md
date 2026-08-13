@@ -36,6 +36,8 @@ analysis/
     pipeline_comparison/      # Systematic comparison of engineering/selection/model choices
   pipeline_comparisons/   # Current pipeline-comparison analyses, one folder per dataset
     sdy1276_tiv/               # SDY1276 (TIV) engineering/selection/model comparisons
+    prevac_rvsv/               # PREVAC rVSV (+ placebo) engineering/selection/model comparisons
+    prevac_ad26mva/            # PREVAC Ad26/MVA (+ placebo) engineering/selection/model comparisons
 R/                        # Reusable helper functions shared across analysis scripts
 ```
 
@@ -68,17 +70,24 @@ studies:
 Reimplementation of the pipeline-comparison analyses, restructured for
 modularity and reuse; intended to eventually replace
 `analysis/application/pipeline_comparison/` and
-`analysis/application/reference_models/`. Each dataset has its own
-subfolder (currently `sdy1276_tiv/` only). Within a dataset folder, a
-`01_prepare_data.R` script builds and caches an analysis-ready dataset, and
-one script per methodological choice (`02_compare_engineering.R`,
+`analysis/application/reference_models/`. Each dataset/vaccine-arm has its
+own subfolder (`sdy1276_tiv/`, `prevac_rvsv/`, `prevac_ad26mva/`). Within a
+folder, a `01_prepare_data.R` script builds and caches an analysis-ready
+dataset, and one script per methodological choice (`02_compare_engineering.R`,
 `03_compare_selection.R`, `04_compare_model.R`) loads that cached dataset and
-runs a `predictomics::compare_pipelines()` comparison against a shared
-reference pipeline. Shared logic (data loading, dataset construction,
+runs one or more `predictomics::compare_pipelines()` comparisons against a
+shared reference pipeline. Shared logic (data loading, dataset construction,
 reference pipeline definition, comparison execution, plot saving) lives in
-`R/` at the repository root rather than being duplicated across scripts. See
-`analysis/pipeline_comparisons/sdy1276_tiv/README.md` for details and
-assumptions specific to that dataset.
+`R/` at the repository root rather than being duplicated across scripts.
+
+SDY1276 (TIV) is single-arm, so its selection comparisons rely on RISE/
+dearseq's *paired* modes (baseline-vs-post-vaccination expression contrast).
+The two PREVAC folders (rVSV and Ad26/MVA) instead include each vaccine
+arm's placebo group in every prediction task - `treatment_predictor = FALSE`
+throughout keeps treatment out of the model itself, but it powers RISE/
+dearseq's *classic* (treatment-vs-placebo) mode in `03_compare_selection.R`,
+using only post-vaccination gene expression (no paired dataset needed). See
+each folder's README.md for details and dataset-specific assumptions.
 
 ## Data conventions
 
