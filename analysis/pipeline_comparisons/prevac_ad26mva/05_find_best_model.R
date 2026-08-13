@@ -16,69 +16,69 @@
 # the model itself throughout the search.
 #
 # Run analysis/pipeline_comparisons/prevac_ad26mva/01_prepare_data.R first.
+#
+# The greedy search itself (3 compare_pipelines() calls) is re-run only if
+# no saved result exists yet at
+# derived_data_dir/best_pipeline_prevac_ad26mva.rds - once found,
+# `best`/`best_fit` are just reloaded, so the plotting code below can be
+# iterated on without re-searching every time.
 
 library(dplyr)
 library(fs)
 library(predictomics)
 library(ggplot2)
+library(patchwork)
 
 source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "run_comparison.R"))
+source(fs::path("R", "metrics_labels.R"))
 source(fs::path("R", "best_pipeline_search.R"))
-
-analysis_data <- readRDS(fs::path("data", "derived", "prevac_ad26mva_analysis_data.rds"))
-single <- analysis_data$single
-genesets <- analysis_data$genesets
-
-best <- find_best_pipeline(
-  X = single$X, Y = single$Y, covariates = single$covariates,
-  treatment = single$treatment,
-  genesets = genesets,
-  dearseq_mode = "classic"
-)
-
-cat("Best pipeline search: PREVAC Ad26/MVA (+ placebo)\n")
-print(best$summary)
 
 derived_data_dir <- fs::path("data", "derived")
 fs::dir_create(derived_data_dir)
 
-saveRDS(best, file = fs::path(derived_data_dir, "best_pipeline_prevac_ad26mva.rds"))
+best_path <- fs::path(derived_data_dir, "best_pipeline_prevac_ad26mva.rds")
+best_fit_path <- fs::path(derived_data_dir, "best_model_fit_prevac_ad26mva.rds")
 
-# The winning model-round pipeline's fit is already a full predictomics
-# predict_cv() object (compare_pipelines() fits every candidate, including
-# the winner, via predict_cv() internally) - reused here rather than
-# re-fitting an identical model from scratch.
-best_fit <- best$round_results$model$fits[[best$winners$model$pipeline]]
-saveRDS(best_fit, file = fs::path(derived_data_dir, "best_model_fit_prevac_ad26mva.rds"))
+if (fs::file_exists(best_path) && fs::file_exists(best_fit_path)) {
+
+  best <- readRDS(best_path)
+  best_fit <- readRDS(best_fit_path)
+
+} else {
+
+  analysis_data <- readRDS(fs::path("data", "derived", "prevac_ad26mva_analysis_data.rds"))
+  single <- analysis_data$single
+  genesets <- analysis_data$genesets
+
+  best <- find_best_pipeline(
+    X = single$X, Y = single$Y, covariates = single$covariates,
+    treatment = single$treatment,
+    genesets = genesets,
+    dearseq_mode = "classic"
+  )
+
+  saveRDS(best, file = best_path)
+
+  # The winning model-round pipeline's fit is already a full predictomics
+  # predict_cv() object (compare_pipelines() fits every candidate, including
+  # the winner, via predict_cv() internally) - reused here rather than
+  # re-fitting an identical model from scratch.
+  best_fit <- best$round_results$model$fits[[best$winners$model$pipeline]]
+  saveRDS(best_fit, file = best_fit_path)
+}
+
+cat("Best pipeline search: PREVAC Ad26/MVA (+ placebo)\n")
+print(best$summary)
 
 figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_ad26mva")
 fs::dir_create(figure_path)
 
-p_fit <- tryCatch(plot(best_fit), error = function(e) {
-  message("[best model] plot(best_fit) failed: ", conditionMessage(e))
-  NULL
-})
-if (!is.null(p_fit)) {
-  print(p_fit)
-  ggsave(fs::path(figure_path, "best_model_fit_prevac_ad26mva.pdf"), p_fit, width = 6, height = 4.5, dpi = 300)
-}
-
-if (!is.null(best$selection_params)) {
-  p_stability <- tryCatch(
-    plot_selection_stability(best_fit, top_n = 20, type = "explicit", plot_type = "frequency"),
-    error = function(e) {
-      message("[best model] plot_selection_stability() failed: ", conditionMessage(e))
-      NULL
-    }
-  )
-  if (!is.null(p_stability)) {
-    print(p_stability)
-    ggsave(
-      fs::path(figure_path, "best_model_selection_stability_prevac_ad26mva.pdf"),
-      p_stability, width = 7, height = 5, dpi = 300
-    )
-  }
-}
+p_summary <- plot_best_model_summary(best_fit, best, title = "PREVAC (Ad26/MVA): best pipeline")
+print(p_summary)
+ggsave(
+  fs::path(figure_path, "best_model_summary_prevac_ad26mva.pdf"),
+  p_summary, width = 12, height = 5, dpi = 300
+)
 
 rm(list = ls())

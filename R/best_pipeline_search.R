@@ -293,3 +293,98 @@ find_best_pipeline <- function(X, Y, covariates, treatment = NULL, genesets,
     round_results        = list(engineering = res1, selection = res2, model = res3)
   )
 }
+
+#' Human-readable one-line description of a `find_best_pipeline()` result's
+#' winning specification, e.g. "Engineering: Gene-set: 1st PC | Selection:
+#' Dearseq (alpha = 0.05) | Model: Ridge". Used as the subtitle on the
+#' combined best-model summary figure (`plot_best_model_summary()`) so the
+#' figure is self-describing without cross-referencing `best$summary`.
+#'
+#' A round's winner is labelled with the *reference* option's human name
+#' (via `R/metrics_labels.R::reference_option_label()`) whenever that round's
+#' winner was the reference row rather than one of the searched options -
+#' `find_best_pipeline()`'s own option-menu labels are otherwise used
+#' directly, since they're already human-readable.
+#'
+#' @param best A list as returned by `find_best_pipeline()`.
+#' @return A single character string.
+describe_best_pipeline <- function(best) {
+
+  aggregates <- !is.null(best$engineering_params$genesets)
+  selection_category <- if (aggregates) "selection_geneset" else "selection_genewise"
+
+  engineering_label <- if (best$winners$engineering$role == "reference") {
+    reference_option_label("engineering")
+  } else {
+    best$winners$engineering$pipeline
+  }
+
+  selection_label <- if (is.null(best$selection_params)) {
+    "None"
+  } else if (best$winners$selection$role == "reference") {
+    reference_option_label(selection_category)
+  } else {
+    best$winners$selection$pipeline
+  }
+
+  model_label <- if (best$winners$model$role == "reference") {
+    reference_option_label("model")
+  } else {
+    best$winners$model$pipeline
+  }
+
+  paste0(
+    "Engineering: ", engineering_label,
+    " | Selection: ", selection_label,
+    " | Model: ", model_label
+  )
+}
+
+#' Combine the winning pipeline's CV-prediction plot and selection-frequency
+#' stability plot into a single side-by-side figure, labelled A) and B), with
+#' a shared title and a subtitle detailing the winning specification.
+#'
+#' @param best_fit The winning pipeline's fitted `predictomics` object (a
+#'   `predict_cv()`/`compare_pipelines()` fit result).
+#' @param best The `find_best_pipeline()` result `best_fit` came from - used
+#'   only to build the subtitle via `describe_best_pipeline()`.
+#' @param title Overall figure title (e.g. dataset display name).
+#' @param selection_top_n `top_n` passed to `plot_selection_stability()`.
+#'
+#' @return A `patchwork` object (two aligned panels tagged "A)"/"B)", plus
+#'   the shared title/subtitle), or, if a panel fails to build, that panel is
+#'   replaced with a blank placeholder rather than aborting the whole figure.
+plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20) {
+
+  p_fit <- tryCatch(plot(best_fit), error = function(e) {
+    message("[best model] plot(best_fit) failed: ", conditionMessage(e))
+    ggplot2::ggplot() +
+      ggplot2::annotate("text", x = 0, y = 0, label = "CV prediction plot unavailable") +
+      ggplot2::theme_void()
+  })
+
+  p_stability <- if (is.null(best$selection_params)) {
+    ggplot2::ggplot() +
+      ggplot2::annotate("text", x = 0, y = 0, label = "No selection step in winning pipeline") +
+      ggplot2::theme_void()
+  } else {
+    tryCatch(
+      plot_selection_stability(best_fit, top_n = selection_top_n, type = "explicit", plot_type = "frequency"),
+      error = function(e) {
+        message("[best model] plot_selection_stability() failed: ", conditionMessage(e))
+        ggplot2::ggplot() +
+          ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
+          ggplot2::theme_void()
+      }
+    )
+  }
+
+  (p_fit + p_stability) +
+    patchwork::plot_layout(ncol = 2, widths = c(1, 1), guides = "collect") +
+    patchwork::plot_annotation(
+      title = title,
+      subtitle = describe_best_pipeline(best),
+      tag_levels = "A",
+      tag_suffix = ")"
+    )
+}
