@@ -46,7 +46,7 @@ plot_relative_effects <- function(df_category, title) {
   ggplot2::ggplot(df_category, ggplot2::aes(x = .data$delta_r2, y = .data$canonical_option)) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", colour = "grey50") +
     ggplot2::geom_point(
-      ggplot2::aes(colour = .data$dataset_label), size = 3, alpha = 0.85
+      ggplot2::aes(colour = .data$dataset_label), size = 3, alpha = 1
     ) +
     ggplot2::geom_point(
       data = summary_df,
@@ -58,11 +58,9 @@ plot_relative_effects <- function(df_category, title) {
       x = expression(Delta * R^2 ~ "vs. reference pipeline"),
       y = NULL,
       colour = "Dataset",
-      title = title,
-      caption = "Diamond = mean across datasets. Reference pipeline's own delta_r2 is 0 by construction, not shown."
+      title = title
     ) +
-    ggplot2::theme_minimal(base_size = 13) +
-    ggplot2::theme(plot.caption = ggplot2::element_text(hjust = 0, size = 9, colour = "grey40"))
+    ggplot2::theme_minimal(base_size = 13)
 }
 
 #' A heatmap of delta_r2 by option x dataset, with within-dataset rank
@@ -100,12 +98,8 @@ plot_relative_heatmap <- function(df_category, title) {
     ggplot2::labs(
       x = NULL, y = NULL,
       fill = expression(Delta * R^2),
-      title = title,
-      caption = "Cell label = rank within that dataset/category (1 = best). Blank cells = option not compared for that dataset."
+      title = title
     ) +
     ggplot2::theme_minimal(base_size = 13) +
-    ggplot2::theme(
-      plot.caption = ggplot2::element_text(hjust = 0, size = 9, colour = "grey40"),
-      axis.text.x = ggplot2::element_text(angle = 20, hjust = 1)
-    )
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 20, hjust = 1))
 }

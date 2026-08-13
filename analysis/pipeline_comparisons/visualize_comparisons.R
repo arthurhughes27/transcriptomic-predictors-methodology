@@ -13,8 +13,14 @@
 # plot type - each category is its own file, since different categories are
 # evaluated against different reference pipelines and so aren't on a
 # directly comparable delta_r2 scale to be shown side-by-side):
-#   * a "mini forest plot" (R/comparison_plots.R::plot_relative_effects())
-#   * a rank/delta_r2 heatmap (R/comparison_plots.R::plot_relative_heatmap())
+#   * a "mini forest plot" (R/comparison_plots.R::plot_relative_effects()) -
+#     excludes each category's own reference row (compute_relative_metrics()'s
+#     is_reference flag): a point at delta_r2 = 0 showing the reference's
+#     distance from itself adds nothing here.
+#   * a rank/delta_r2 heatmap (R/comparison_plots.R::plot_relative_heatmap()) -
+#     includes the reference row (e.g. "Elastic net (reference)" for
+#     category = "model"), participating in the within-dataset ranking like
+#     any other option, since it's a real, valid choice for that category.
 #
 # That's 4 categories x 2 plot types = 8 figures, saved to
 # output/figures/pipeline_comparisons/cross_dataset/.
@@ -45,14 +51,16 @@ for (cat in categories) {
   cat_label <- category_display_name(cat)
   n_options <- dplyr::n_distinct(df_category$canonical_option)
 
+  df_effects <- df_category %>% dplyr::filter(!.data$is_reference)
+
   p_effects <- plot_relative_effects(
-    df_category,
+    df_effects,
     title = paste0("Relative performance by choice: ", cat_label)
   )
   print(p_effects)
   save_pipeline_comparison_plot(
     p_effects, figure_path, paste0("delta_r2_dotplot_", cat, ".pdf"),
-    width = 9, height = max(3, 0.45 * n_options + 1.5)
+    width = 9, height = max(3, 0.45 * (n_options - 1) + 1.5)
   )
 
   p_heatmap <- plot_relative_heatmap(

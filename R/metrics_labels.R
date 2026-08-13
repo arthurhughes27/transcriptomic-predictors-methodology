@@ -106,3 +106,25 @@ category_display_name <- function(category) {
   )
   unname(ifelse(category %in% names(lookup), lookup[category], category))
 }
+
+#' Human-readable name for what a category's reference pipeline actually
+#' does, used to label the reference row added to the cross-dataset
+#' heatmaps (see `R/metrics_analysis.R::compute_relative_metrics()`) - e.g.
+#' "Elastic net" for the model-choice heatmap, shown there as "Elastic net
+#' (reference)".
+#'
+#' Unlike the other lookups in this file, this one can't be derived from the
+#' saved metrics tables themselves (they carry option labels, not pipeline
+#' parameter values), so it's a manually-curated match to
+#' `R/pipeline_defaults.R`'s `reference_pipeline_params()` (used by
+#' `engineering`/`selection_geneset`/`model`) and
+#' `raw_gene_reference_params()` (used by `selection_genewise`).
+reference_option_label <- function(category) {
+  lookup <- c(
+    engineering         = "Mean aggregation",
+    selection_geneset   = "Variance (top 7,500)",
+    selection_genewise  = "Variance (top 7,500)",
+    model               = "Elastic net"
+  )
+  unname(ifelse(category %in% names(lookup), lookup[category], "Reference"))
+}
