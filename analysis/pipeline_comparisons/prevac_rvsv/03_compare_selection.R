@@ -44,6 +44,7 @@ library(ggplot2)
 source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "plotting.R"))
+source(fs::path("R", "metrics_io.R"))
 
 analysis_data <- readRDS(fs::path("data", "derived", "prevac_rvsv_analysis_data.rds"))
 single <- analysis_data$single
@@ -82,6 +83,8 @@ res_geneset <- run_pipeline_comparison(
   option_type = "selection", option_choices = option_choices_geneset,
   reference_params = reference_params_geneset
 )
+
+save_comparison_metrics(res_geneset, dataset = "prevac_rvsv", category = "selection_geneset")
 
 p_geneset <- plot(res_geneset, metric = "R2") +
   ggtitle("Pipeline comparison: geneset-level feature selection (PREVAC rVSV)")
@@ -122,6 +125,8 @@ res_genewise <- run_pipeline_comparison(
   option_type = "selection", option_choices = option_choices_genewise,
   reference_params = reference_params_genewise
 )
+
+save_comparison_metrics(res_genewise, dataset = "prevac_rvsv", category = "selection_genewise")
 
 p_genewise <- plot(res_genewise, metric = "R2") +
   ggtitle("Pipeline comparison: gene-wise feature selection (PREVAC rVSV)")

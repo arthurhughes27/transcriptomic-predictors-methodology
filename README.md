@@ -89,6 +89,18 @@ dearseq's *classic* (treatment-vs-placebo) mode in `03_compare_selection.R`,
 using only post-vaccination gene expression (no paired dataset needed). See
 each folder's README.md for details and dataset-specific assumptions.
 
+Every `02_compare_engineering.R`/`03_compare_selection.R`/`04_compare_model.R`
+script also saves its comparison's results table (via
+`R/metrics_io.R::save_comparison_metrics()`) to `data/derived/metrics/`,
+tagged with `dataset` and `category` (`engineering`, `selection_geneset`,
+`selection_genewise`, or `model` - geneset-level and gene-wise feature
+selection are kept as separate categories, since they compare against two
+different reference pipelines).
+`analysis/pipeline_comparisons/collect_metrics.R` pools all of these into a
+single long-format data frame (`data/derived/pipeline_comparison_metrics.rds`),
+for cross-dataset visualisation of which methodological choices help,
+independent of any one dataset's baseline predictability.
+
 ## Data conventions
 
 Processed data frames follow shared column naming conventions:

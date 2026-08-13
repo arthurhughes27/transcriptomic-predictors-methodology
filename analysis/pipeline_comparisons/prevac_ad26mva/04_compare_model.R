@@ -23,6 +23,7 @@ library(ggplot2)
 source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "plotting.R"))
+source(fs::path("R", "metrics_io.R"))
 
 analysis_data <- readRDS(fs::path("data", "derived", "prevac_ad26mva_analysis_data.rds"))
 single <- analysis_data$single
@@ -45,6 +46,8 @@ res <- run_pipeline_comparison(
   option_type = "model", option_choices = option_choices,
   reference_params = reference_params
 )
+
+save_comparison_metrics(res, dataset = "prevac_ad26mva", category = "model")
 
 p <- plot(res, metric = "R2") +
   ggtitle("Pipeline comparison: model choice (PREVAC Ad26/MVA)")

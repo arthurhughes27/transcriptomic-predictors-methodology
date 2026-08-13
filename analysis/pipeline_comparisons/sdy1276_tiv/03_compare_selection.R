@@ -60,6 +60,7 @@ library(ggplot2)
 source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "plotting.R"))
+source(fs::path("R", "metrics_io.R"))
 
 analysis_data <- readRDS(fs::path("data", "derived", "sdy1276_tiv_analysis_data.rds"))
 paired <- analysis_data$paired
@@ -98,6 +99,8 @@ res_geneset <- run_pipeline_comparison(
   option_type = "selection", option_choices = option_choices_geneset,
   reference_params = reference_params_geneset
 )
+
+save_comparison_metrics(res_geneset, dataset = "sdy1276_tiv", category = "selection_geneset")
 
 p_geneset <- plot(res_geneset, metric = "R2") +
   ggtitle("Pipeline comparison: geneset-level feature selection (SDY1276, TIV)")
@@ -145,6 +148,8 @@ res_genewise <- run_pipeline_comparison(
   option_type = "selection", option_choices = option_choices_genewise,
   reference_params = reference_params_genewise
 )
+
+save_comparison_metrics(res_genewise, dataset = "sdy1276_tiv", category = "selection_genewise")
 
 p_genewise <- plot(res_genewise, metric = "R2") +
   ggtitle("Pipeline comparison: gene-wise feature selection (SDY1276, TIV)")
