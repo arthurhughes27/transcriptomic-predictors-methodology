@@ -39,8 +39,8 @@ figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_rvs
 reference_params <- reference_pipeline_params(genesets)
 
 option_choices <- list(
-  "Gene-level: none" = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
-  "Gene-set: none"   = list(method = "engineer", col_transform = "z", genesets = NULL, agg_method = "mean"),
+  "Gene-level: no transformation" = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
+  "Gene-level: z-score"   = list(method = "engineer", col_transform = "z", genesets = NULL, agg_method = "mean"),
   "Gene-set: median" = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "median"),
   "Gene-set: max"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "max"),
   "Gene-set: 1st PC" = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "pc1"),
