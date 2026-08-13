@@ -44,7 +44,8 @@ reference_params <- reference_pipeline_params(genesets)
 ## ---- 1. Gene-set aggregation (single timepoint) ---------------------------
 
 aggregation_options <- list(
-  "Gene-wise"   = list(method = "engineer", col_transform = "z", genesets = NULL, agg_method = "mean"),
+  "Gene-level: no transformation" = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
+  "Gene-level: z-score"   = list(method = "engineer", col_transform = "z", genesets = NULL, agg_method = "mean"),
   "Gene-set: median" = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "median"),
   "Gene-set: max"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "max"),
   "Gene-set: 1st PC" = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "pc1"),
