@@ -101,6 +101,21 @@ single long-format data frame (`data/derived/pipeline_comparison_metrics.rds`),
 for cross-dataset visualisation of which methodological choices help,
 independent of any one dataset's baseline predictability.
 
+`analysis/pipeline_comparisons/visualize_comparisons.R` (run after
+`collect_metrics.R`) produces that visualisation: for each category, every
+option's performance is expressed as Δ*R²* relative to its own comparison's
+reference pipeline (`R/metrics_analysis.R::compute_relative_metrics()`) -
+a difference, not a ratio, since *R²* can be ≤ 0, making a ratio undefined/
+unstable near a small or negative reference, whereas differences aggregate
+to a well-defined mean when averaged across datasets. Dataset-specific
+option labels (e.g. "paired" vs "classic" RISE/dearseq) are harmonised via
+`R/metrics_labels.R` so the same underlying choice lands on one row. Two
+plots are produced per category (never faceted across categories, since
+each category has its own reference pipeline): a "mini forest plot" (one
+point per dataset per option, plus a mean-across-datasets diamond) and a
+rank/Δ*R²* heatmap - saved to
+`output/figures/pipeline_comparisons/cross_dataset/`.
+
 ## Data conventions
 
 Processed data frames follow shared column naming conventions:
