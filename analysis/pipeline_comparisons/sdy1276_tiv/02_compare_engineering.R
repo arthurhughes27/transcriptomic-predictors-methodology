@@ -30,6 +30,7 @@ library(ggplot2)
 source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "plotting.R"))
+source(fs::path("R", "metrics_io.R"))
 
 analysis_data <- readRDS(fs::path("data", "derived", "sdy1276_tiv_analysis_data.rds"))
 single <- analysis_data$single
@@ -56,6 +57,11 @@ res_aggregation <- run_pipeline_comparison(
   X = single$X, Y = single$Y, covariates = single$covariates,
   option_type = "engineering", option_choices = aggregation_options,
   reference_params = reference_params
+)
+
+save_comparison_metrics(
+  res_aggregation, dataset = "sdy1276_tiv", category = "engineering",
+  label = "engineering_aggregation"
 )
 
 gc()
@@ -90,6 +96,11 @@ res_gene_level <- run_pipeline_comparison(
   timepoint = paired$timepoint, individual_id = paired$participant_id,
   option_type = "engineering", option_choices = gene_level_options,
   reference_params = reference_params
+)
+
+save_comparison_metrics(
+  res_gene_level, dataset = "sdy1276_tiv", category = "engineering",
+  label = "engineering_gene_level"
 )
 
 p_gene_level <- plot(res_gene_level, metric = "R2") +
