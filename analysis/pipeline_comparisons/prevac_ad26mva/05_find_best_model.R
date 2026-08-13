@@ -1,0 +1,84 @@
+# analysis/pipeline_comparisons/prevac_ad26mva/05_find_best_model.R
+#
+# Find the best-performing analytical pipeline for PREVAC Ad26/MVA
+# (+ placebo) via the targeted, 3-round greedy coordinate-ascent search
+# implemented in R/best_pipeline_search.R::find_best_pipeline() (see that
+# file's header for the full method and its trade-offs), then keep the
+# winning pipeline's fit - already produced as a side effect of round 3's
+# compare_pipelines() call, no separate refit needed - for downstream
+# interpretation (selected features, model coefficients, etc.).
+#
+# Unlike SDY1276, PREVAC has a placebo arm, so RISE and dearseq are
+# available as selection candidates here in their "classic" (treatment vs.
+# placebo) mode - see R/best_pipeline_search.R's header. treatment is
+# passed only for that screening contrast; treatment_predictor = FALSE (the
+# default in R/run_comparison.R::run_pipeline_comparison()) keeps it out of
+# the model itself throughout the search.
+#
+# Run analysis/pipeline_comparisons/prevac_ad26mva/01_prepare_data.R first.
+
+library(dplyr)
+library(fs)
+library(predictomics)
+library(ggplot2)
+
+source(fs::path("R", "pipeline_defaults.R"))
+source(fs::path("R", "run_comparison.R"))
+source(fs::path("R", "best_pipeline_search.R"))
+
+analysis_data <- readRDS(fs::path("data", "derived", "prevac_ad26mva_analysis_data.rds"))
+single <- analysis_data$single
+genesets <- analysis_data$genesets
+
+best <- find_best_pipeline(
+  X = single$X, Y = single$Y, covariates = single$covariates,
+  treatment = single$treatment,
+  genesets = genesets,
+  dearseq_mode = "classic"
+)
+
+cat("Best pipeline search: PREVAC Ad26/MVA (+ placebo)\n")
+print(best$summary)
+
+derived_data_dir <- fs::path("data", "derived")
+fs::dir_create(derived_data_dir)
+
+saveRDS(best, file = fs::path(derived_data_dir, "best_pipeline_prevac_ad26mva.rds"))
+
+# The winning model-round pipeline's fit is already a full predictomics
+# predict_cv() object (compare_pipelines() fits every candidate, including
+# the winner, via predict_cv() internally) - reused here rather than
+# re-fitting an identical model from scratch.
+best_fit <- best$round_results$model$fits[[best$winners$model$pipeline]]
+saveRDS(best_fit, file = fs::path(derived_data_dir, "best_model_fit_prevac_ad26mva.rds"))
+
+figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_ad26mva")
+fs::dir_create(figure_path)
+
+p_fit <- tryCatch(plot(best_fit), error = function(e) {
+  message("[best model] plot(best_fit) failed: ", conditionMessage(e))
+  NULL
+})
+if (!is.null(p_fit)) {
+  print(p_fit)
+  ggsave(fs::path(figure_path, "best_model_fit_prevac_ad26mva.pdf"), p_fit, width = 6, height = 4.5, dpi = 300)
+}
+
+if (!is.null(best$selection_params)) {
+  p_stability <- tryCatch(
+    plot_selection_stability(best_fit, top_n = 20, type = "explicit"),
+    error = function(e) {
+      message("[best model] plot_selection_stability() failed: ", conditionMessage(e))
+      NULL
+    }
+  )
+  if (!is.null(p_stability)) {
+    print(p_stability)
+    ggsave(
+      fs::path(figure_path, "best_model_selection_stability_prevac_ad26mva.pdf"),
+      p_stability, width = 7, height = 5, dpi = 300
+    )
+  }
+}
+
+rm(list = ls())
