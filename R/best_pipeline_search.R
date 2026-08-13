@@ -240,6 +240,21 @@ find_best_pipeline <- function(X, Y, covariates, treatment = NULL, genesets,
     selection_genewise_search_menu(dearseq_mode = dearseq_mode)
   }
 
+  # Gene-wise dearseq (dearseq_level = "gene") screens and returns individual
+  # gene names, which don't exist as columns once engineering has aggregated
+  # into gene sets - it makes sense only alongside non-aggregating
+  # engineering. selection_geneset_search_menu() never offers it, but this
+  # explicit strip is kept as a hard, self-documenting guarantee (rather than
+  # relying solely on that menu never being extended to include it) that no
+  # gene-level dearseq candidate can ever reach round 2 when round 1's
+  # winning engineering aggregates.
+  if (aggregates) {
+    is_genewise_dearseq <- vapply(selection_menu, function(opt) {
+      identical(opt$method, "dearseq") && identical(opt$dearseq_level, "gene")
+    }, logical(1))
+    selection_menu <- selection_menu[!is_genewise_dearseq]
+  }
+
   res2 <- run_pipeline_comparison(
     X = X, Y = Y, covariates = covariates, treatment = treatment,
     option_type = "selection",
