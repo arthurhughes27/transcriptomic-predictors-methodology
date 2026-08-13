@@ -43,10 +43,20 @@
 #' averaged, so each dataset contributes at most one point per option to the
 #' downstream plots.
 #'
+#' Each comparison's own `role == "reference"` row is also included as a
+#' row in the output, labelled via `reference_option_label()` (e.g.
+#' "Elastic net (reference)" for `category = "model"`) and flagged
+#' `is_reference = TRUE`; its `delta_r2` is 0 by construction (it's being
+#' compared to itself). This is deliberate, not a check you need to remove:
+#' the reference pipeline is a real, valid choice for its own category and
+#' belongs in the ranking/heatmap alongside the options it's the baseline
+#' for. Filter on `is_reference` in a caller that doesn't want it (e.g. the
+#' forest/dot plot, where a "distance from itself" point adds nothing).
+#'
 #' @return A data frame with columns `dataset`, `category`,
 #'   `canonical_option`, `delta_r2` (mean, if more than one raw row
-#'   contributed), and `n_raw` (how many raw rows were averaged - 1 unless
-#'   canonicalization merged rows).
+#'   contributed), `is_reference`, and `n_raw` (how many raw rows were
+#'   averaged - 1 unless canonicalization merged rows).
 compute_relative_metrics <- function(all_metrics) {
 
   references <- all_metrics %>%
@@ -56,13 +66,26 @@ compute_relative_metrics <- function(all_metrics) {
   options_with_ref <- all_metrics %>%
     dplyr::filter(.data$role == "option") %>%
     dplyr::inner_join(references, by = c("dataset", "category", "comparison")) %>%
-    dplyr::mutate(
+    dplyr::transmute(
+      dataset = .data$dataset,
+      category = .data$category,
+      canonical_option = canonicalize_option_label(.data$pipeline, .data$category),
       delta_r2 = .data$R2 - .data$reference_r2,
-      canonical_option = canonicalize_option_label(.data$pipeline, .data$category)
+      is_reference = FALSE
     )
 
-  options_with_ref %>%
-    dplyr::group_by(.data$dataset, .data$category, .data$canonical_option) %>%
+  reference_rows <- all_metrics %>%
+    dplyr::filter(.data$role == "reference") %>%
+    dplyr::transmute(
+      dataset = .data$dataset,
+      category = .data$category,
+      canonical_option = paste0(reference_option_label(.data$category), " (reference)"),
+      delta_r2 = 0,
+      is_reference = TRUE
+    )
+
+  dplyr::bind_rows(options_with_ref, reference_rows) %>%
+    dplyr::group_by(.data$dataset, .data$category, .data$canonical_option, .data$is_reference) %>%
     dplyr::summarise(
       delta_r2 = mean(.data$delta_r2),
       n_raw = dplyr::n(),
