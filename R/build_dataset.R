@@ -27,17 +27,27 @@
 #' @param timepoint Character scalar/vector giving the `time` value(s) to keep.
 #' @param response_col Name of the column holding the immunogenicity outcome.
 #' @param covariate_names Baseline covariates to retain alongside gene expression.
+#' @param treatment_arm If supplied, a `study_vaccine` value; the returned
+#'   list gains a `treatment` element (1 for rows matching this value, 0 for
+#'   every other row in `study_vaccine_groups`). Used for placebo-controlled
+#'   designs where a binary treatment indicator is needed (e.g. for
+#'   `treatment_predictor`, or as the contrast for "classic" RISE/dearseq
+#'   selection) without necessarily using treatment as a model predictor.
+#'   `NULL` (default) omits `treatment` from the result, as for a single-arm
+#'   design with no placebo/control group.
 #' @param log_response If TRUE (default), the response is log-transformed.
 #' @param require_complete_cases If TRUE (default), gene columns with any
 #'   missing values are dropped.
 #'
 #' @return A list with elements X (predictor matrix), Y (response vector),
-#'   covariates (data frame), participant_id, and gene_names.
+#'   covariates (data frame), participant_id, gene_names, and (only if
+#'   `treatment_arm` is supplied) treatment.
 build_prediction_dataset <- function(df_merged,
                                       study_vaccine_groups,
                                       timepoint,
                                       response_col,
                                       covariate_names = c("age", "sex", "race"),
+                                      treatment_arm = NULL,
                                       log_response = TRUE,
                                       require_complete_cases = TRUE) {
 
@@ -48,7 +58,7 @@ build_prediction_dataset <- function(df_merged,
                   .data$time %in% timepoint) %>%
     dplyr::mutate(response = .data[[response_col]]) %>%
     dplyr::filter(!is.na(.data$response)) %>%
-    dplyr::select(participant_id, response,
+    dplyr::select(participant_id, study_vaccine, response,
                   dplyr::any_of(covariate_names),
                   dplyr::any_of(gene_names))
 
@@ -58,19 +68,25 @@ build_prediction_dataset <- function(df_merged,
 
   if (require_complete_cases) {
     df_filtered <- df_filtered %>%
-      dplyr::select(participant_id, response, dplyr::any_of(covariate_names),
+      dplyr::select(participant_id, study_vaccine, response, dplyr::any_of(covariate_names),
                     dplyr::where(~ !any(is.na(.))))
   }
 
   gene_names_present <- intersect(gene_names, names(df_filtered))
 
-  list(
+  result <- list(
     X = df_filtered %>% dplyr::select(dplyr::any_of(gene_names_present)) %>% as.matrix(),
     Y = df_filtered %>% dplyr::pull(response),
     covariates = df_filtered %>% dplyr::select(dplyr::any_of(covariate_names)),
     participant_id = df_filtered %>% dplyr::pull(participant_id),
     gene_names = gene_names_present
   )
+
+  if (!is.null(treatment_arm)) {
+    result$treatment <- as.integer(df_filtered$study_vaccine == treatment_arm)
+  }
+
+  result
 }
 
 #' Build a paired baseline + post-vaccination dataset.
