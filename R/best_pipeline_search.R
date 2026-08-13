@@ -385,6 +385,15 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20)
       title = title,
       subtitle = describe_best_pipeline(best),
       tag_levels = "A",
-      tag_suffix = ")"
+      tag_suffix = ")",
+      theme = ggplot2::theme(
+        plot.title = ggplot2::element_text(size = 18, face = "bold"),
+        plot.subtitle = ggplot2::element_text(size = 13),
+        legend.position = "bottom"
+      )
+    ) &
+    ggplot2::theme(
+      legend.position = "bottom",
+      plot.tag = ggplot2::element_text(size = 16, face = "bold")
     )
 }
