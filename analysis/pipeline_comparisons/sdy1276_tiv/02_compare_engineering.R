@@ -42,7 +42,8 @@ option_choices <- list(
   "Gene-set: ssGSEA" = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "ssgsea", ssgsea_min_size = 2)
 )
 
-res <- run_pipeline_comparison(
+res <- run_or_load_comparison(
+  cache_path = comparison_cache_path("sdy1276_tiv", "engineering"),
   X = single$X, Y = single$Y, covariates = single$covariates,
   option_type = "engineering", option_choices = option_choices,
   reference_params = reference_params

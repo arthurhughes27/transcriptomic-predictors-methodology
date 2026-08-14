@@ -41,7 +41,8 @@ option_choices <- list(
   "Support vector regression" = list(method = "svr", inner_folds = 5, metric = "r2")
 )
 
-res <- run_pipeline_comparison(
+res <- run_or_load_comparison(
+  cache_path = comparison_cache_path("sdy1276_tiv", "model"),
   X = single$X, Y = single$Y, covariates = single$covariates,
   option_type = "model", option_choices = option_choices,
   reference_params = reference_params

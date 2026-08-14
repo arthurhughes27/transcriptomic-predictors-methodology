@@ -52,7 +52,8 @@ option_choices <- list(
   "Gene-level: fold-change" = list(method = "engineer", col_transform = "none", gene_level_fc = TRUE,  genesets = NULL, agg_method = "mean")
 )
 
-res <- run_pipeline_comparison(
+res <- run_or_load_comparison(
+  cache_path = comparison_cache_path("sdy1276_tiv", "engineering_genewise"),
   X = paired$X, Y = paired$Y, covariates = paired$covariates,
   individual_id = paired$participant_id, timepoint = paired$timepoint,
   option_type = "engineering", option_choices = option_choices,

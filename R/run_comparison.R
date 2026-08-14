@@ -50,3 +50,33 @@ run_pipeline_comparison <- function(X, Y, covariates,
     diagnostics = "summary"
   )
 }
+
+#' Run `run_pipeline_comparison()`, but skip it entirely if a previous run
+#' was already cached to `cache_path` - so a comparison script (02, 02b, 03,
+#' 03b, 04) can be re-run (e.g. to re-generate its figure after a plotting
+#' tweak) without re-fitting every pipeline in it.
+#'
+#' @param cache_path Path (e.g. from `R/metrics_io.R::comparison_cache_path()`)
+#'   to save/load the full `predictomics_comparison` object as an `.rds`
+#'   file. If it already exists, it's loaded and returned as-is - NOT
+#'   re-validated against the arguments below, so deleting the file (or
+#'   passing a different `cache_path`) is how to force a re-run after
+#'   changing an option, the reference pipeline, or the data.
+#' @param ... Forwarded to `run_pipeline_comparison()`.
+#'
+#' @return A `predictomics_comparison` object, freshly fit or loaded from
+#'   cache.
+run_or_load_comparison <- function(cache_path, ...) {
+  if (fs::file_exists(cache_path)) {
+    message("[run_comparison] Loading cached comparison from ", cache_path,
+            " (delete this file to force a re-run).")
+    return(readRDS(cache_path))
+  }
+
+  res <- run_pipeline_comparison(...)
+
+  fs::dir_create(fs::path_dir(cache_path))
+  saveRDS(res, file = cache_path)
+
+  res
+}
