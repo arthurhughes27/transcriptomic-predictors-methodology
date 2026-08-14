@@ -4,21 +4,26 @@
 # per dataset, rather than an exhaustive grid over every
 # engineering x selection x model combination.
 #
+# GENESET-ONLY: this search is one of "the main analyses" (geneset
+# engineering + geneset-level selection + model choice), matching the
+# separation used throughout analysis/pipeline_comparisons/ (02/03 = main,
+# geneset-only; 02b/03b = supplementary, gene-wise-only). Every engineering
+# option offered here aggregates into gene sets, so round 2 only ever needs
+# the geneset-level selection menu - there is no gene-wise counterpart to
+# this search. Gene-wise engineering/selection are compared only in the
+# supplementary 02b/03b scripts, never as part of finding "the best"
+# pipeline.
+#
 # Implements a three-round GREEDY COORDINATE-ASCENT search through the
 # pipeline stages, in their natural execution order (engineering ->
 # selection -> model):
-#   1. Compare engineering options against the usual mean-aggregation
-#      reference (R/pipeline_defaults.R::reference_pipeline_params()) -
-#      pick the single best (by R2).
-#   2. Compare selection options, with engineering FIXED to round 1's
-#      winner (not the default reference) - pick the single best. The
-#      selection menu offered depends on round 1's winner: if it aggregates
-#      into gene sets, the geneset-level menu is used; if not (raw genes),
-#      the gene-wise menu is used instead - these are two different,
-#      mutually incompatible feature spaces (see
-#      analysis/pipeline_comparisons/sdy1276_tiv/03_compare_selection.R's
-#      header for why RISE/gene-level dearseq specifically require raw,
-#      unaggregated features).
+#   1. Compare engineering options (gene-set aggregation methods only)
+#      against the usual mean-aggregation reference
+#      (R/pipeline_defaults.R::reference_pipeline_params()) - pick the
+#      single best (by R2).
+#   2. Compare selection options (geneset-level methods only), with
+#      engineering FIXED to round 1's winner (not the default reference) -
+#      pick the single best.
 #   3. Compare model options, with engineering AND selection FIXED to
 #      rounds 1-2's winners - pick the single best.
 #
@@ -62,16 +67,17 @@ default_search_model_params <- function(inner_folds = 5, metric = "r2") {
   list(method = "glmnet", inner_folds = inner_folds, metric = metric)
 }
 
-#' Engineering options compared in round 1. Same menu for every dataset
-#' (Table 5.2's full set): no transform/no aggregation, z-score/no
-#' aggregation, and the five gene-set aggregation methods. Mean aggregation
-#' is deliberately excluded as an explicit option - it's the reference
-#' itself (`reference_pipeline_params()`), already evaluated as the
-#' "Reference" row by `compare_pipelines()`.
+#' Engineering options compared in round 1: the five gene-set aggregation
+#' methods (Table 5.2), same menu for every dataset. Mean aggregation is
+#' deliberately excluded as an explicit option - it's the reference itself
+#' (`reference_pipeline_params()`), already evaluated as the "Reference" row
+#' by `compare_pipelines()`. Gene-level (no-aggregation) options are
+#' intentionally NOT offered here - see this file's header: gene-wise
+#' engineering is compared only in the supplementary
+#' 02b_compare_engineering_genewise.R scripts, never as a candidate for "the
+#' best" pipeline.
 engineering_search_menu <- function(genesets) {
   list(
-    # "Gene-level: none"    = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
-    # "Gene-level: z-score" = list(method = "engineer", col_transform = "z",    genesets = NULL, agg_method = "mean"),
     "Gene-set: median"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "median"),
     "Gene-set: max"       = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "max"),
     "Gene-set: 1st PC"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "pc1"),
@@ -80,8 +86,8 @@ engineering_search_menu <- function(genesets) {
   )
 }
 
-#' Selection options compared in round 2, when round 1's winning engineering
-#' AGGREGATES into gene sets (i.e. its `genesets` element is not NULL).
+#' Selection options compared in round 2 (geneset-level only - see this
+#' file's header).
 #'
 #' @param genesets Named list of gene sets, forwarded to the dearseq option.
 #' @param dearseq_mode "classic" to include dearseq at the geneset level
@@ -105,37 +111,6 @@ selection_geneset_search_menu <- function(genesets, dearseq_mode = NULL) {
     menu[["Dearseq (geneset, alpha = 0.05)"]] <- list(
       method = "dearseq", dearseq_mode = dearseq_mode, dearseq_level = "geneset",
       genesets = genesets, threshold = 0.05
-    )
-  }
-  menu
-}
-
-#' Selection options compared in round 2, when round 1's winning engineering
-#' does NOT aggregate (raw genes).
-#'
-#' @param dearseq_mode As for `selection_geneset_search_menu()`; also gates
-#'   RISE, which is included alongside dearseq whenever `dearseq_mode` is
-#'   supplied, since both need a treatment/placebo contrast SDY1276 doesn't
-#'   have.
-selection_genewise_search_menu <- function(dearseq_mode = NULL) {
-  menu <- list(
-    "Variance (top 500)" = list(method = "variance", top_n = 500),
-    "Correlation - Spearman (top 500)"   = list(method = "spearman", top_n = 500),
-    "Correlation - Spearman (|r| > 0.5)" = list(method = "spearman", threshold = 0.5),
-    "Correlation - Pearson (top 500)"    = list(method = "pearson", top_n = 500),
-    "Correlation - Pearson (|r| > 0.5)"  = list(method = "pearson", threshold = 0.5),
-    "Univariate regression screening (threshold = 0)" = list(
-      method = "relative_gain", threshold = 0,
-      relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
-    )
-  )
-  if (!is.null(dearseq_mode)) {
-    menu[["RISE (top 500)"]] <- list(
-      method = "rise", top_n = 500, rise_power_want_s = 0.8, rise_p_correction = "BH"
-    )
-    menu[["Dearseq (gene, alpha = 0.05)"]] <- list(
-      method = "dearseq", dearseq_mode = dearseq_mode, dearseq_level = "gene",
-      threshold = 0.05
     )
   }
   menu
@@ -178,8 +153,10 @@ model_search_menu <- function(inner_folds = 5, metric = "r2") {
 #'   \describe{
 #'     \item{engineering_params, selection_params, model_params}{The winning
 #'       spec for each stage. `selection_params` may be `NULL`, meaning no
-#'       selection step at all won round 2 (subject to the relaxed
-#'       variance-prefilter fallback described in this function's body).}
+#'       selection step at all won round 2 (round 2's own reference is the
+#'       "no selection" pipeline, since round 1's winning engineering always
+#'       aggregates into a few hundred gene sets, not ~20,000 raw genes - no
+#'       pre-filter fallback is needed here).}
 #'     \item{winners}{A list of the three rounds' winner rows (from
 #'       `.pick_round_winner()`), for reference.}
 #'     \item{summary}{A data frame with one row per round: round label,
@@ -212,48 +189,21 @@ find_best_pipeline <- function(X, Y, covariates, treatment = NULL, genesets,
     engineering_search_menu(genesets)[[winner1$pipeline]]
   }
 
-  aggregates <- !is.null(engineering_params$genesets)
-
-  ## ---- Round 2: selection, conditioned on round 1's winner -----------------
-
-  # If the winning engineering doesn't aggregate, fitting directly on
-  # ~20,000 raw genes with NO selection at all can run into the same
-  # computational problems raw_gene_reference_params() exists to avoid, so
-  # this round's own "no selection" reference falls back to the same
-  # relaxed variance pre-filter in that case, exactly as
-  # raw_gene_reference_params() does.
-  selection_params_round2_reference <- if (aggregates) {
-    NULL
-  } else {
-    raw_gene_reference_params()$selection_params
-  }
+  ## ---- Round 2: selection (geneset-level only), conditioned on round 1 -----
+  #
+  # Every round-1 engineering option (and the reference) aggregates into
+  # gene sets - see this file's header - so round 2 only ever needs the
+  # geneset-level selection menu. Gene-wise selection (RISE, gene-level
+  # dearseq) is never a candidate here; it's compared only in the
+  # supplementary 03b_compare_selection_genewise.R scripts.
 
   reference_params2 <- list(
     engineering_params = engineering_params,
-    selection_params   = selection_params_round2_reference,
+    selection_params   = NULL,
     model_params        = model_params_default
   )
 
-  selection_menu <- if (aggregates) {
-    selection_geneset_search_menu(genesets, dearseq_mode = dearseq_mode)
-  } else {
-    selection_genewise_search_menu(dearseq_mode = dearseq_mode)
-  }
-
-  # Gene-wise dearseq (dearseq_level = "gene") screens and returns individual
-  # gene names, which don't exist as columns once engineering has aggregated
-  # into gene sets - it makes sense only alongside non-aggregating
-  # engineering. selection_geneset_search_menu() never offers it, but this
-  # explicit strip is kept as a hard, self-documenting guarantee (rather than
-  # relying solely on that menu never being extended to include it) that no
-  # gene-level dearseq candidate can ever reach round 2 when round 1's
-  # winning engineering aggregates.
-  if (aggregates) {
-    is_genewise_dearseq <- vapply(selection_menu, function(opt) {
-      identical(opt$method, "dearseq") && identical(opt$dearseq_level, "gene")
-    }, logical(1))
-    selection_menu <- selection_menu[!is_genewise_dearseq]
-  }
+  selection_menu <- selection_geneset_search_menu(genesets, dearseq_mode = dearseq_mode)
 
   res2 <- run_pipeline_comparison(
     X = X, Y = Y, covariates = covariates, treatment = treatment,
@@ -325,9 +275,6 @@ find_best_pipeline <- function(X, Y, covariates, treatment = NULL, genesets,
 #' @return A single character string.
 describe_best_pipeline <- function(best) {
 
-  aggregates <- !is.null(best$engineering_params$genesets)
-  selection_category <- if (aggregates) "selection_geneset" else "selection_genewise"
-
   engineering_label <- if (best$winners$engineering$role == "reference") {
     reference_option_label("engineering")
   } else {
@@ -337,7 +284,7 @@ describe_best_pipeline <- function(best) {
   selection_label <- if (is.null(best$selection_params)) {
     "None"
   } else if (best$winners$selection$role == "reference") {
-    reference_option_label(selection_category)
+    reference_option_label("selection_geneset")
   } else {
     best$winners$selection$pipeline
   }

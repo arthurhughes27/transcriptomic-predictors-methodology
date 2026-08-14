@@ -26,31 +26,12 @@
 
 .option_label_overrides <- c(
 
-  # --- engineering: SDY1276 splits gene-level transform vs aggregation
-  # across two compare_pipelines() calls (see
-  # sdy1276_tiv/02_compare_engineering.R); "Gene-wise" (from the
-  # aggregation call: z-score, no aggregation) and "Gene-level: z-score"
-  # (from the gene-level call, same config, evaluated on a differently
-  # -restricted sample - see that script's header) both denote the same
-  # underlying choice as PREVAC's "Gene-level: z-score" (its only
-  # single-call comparison). All three canonicalize to one label; when a
-  # dataset contributes more than one raw label to it (SDY1276 does),
-  # compute_relative_metrics() averages them - see that function's docs.
-  "engineering|Gene-wise"                    = "Gene-level: z-score (no aggregation)",
-  "engineering|Gene-level: z-score"          = "Gene-level: z-score (no aggregation)",
-
-  # PREVAC's two folders independently named the "no transform, no
-  # aggregation" option differently ("no transformation" vs "none");
-  # SDY1276 doesn't have an equivalent option in its engineering
-  # comparisons at all (so this canonical label ends up PREVAC-only,
-  # covering 2 of 3 datasets - expected, not a bug).
-  "engineering|Gene-level: no transformation" = "Gene-level: none (no aggregation)",
-  "engineering|Gene-level: none"              = "Gene-level: none (no aggregation)",
-
-  # SDY1276-only (needs paired baseline+post data, which PREVAC's folders
-  # don't build - see prevac_*/01_prepare_data.R). Renamed only for a
-  # consistent "(no aggregation)" suffix alongside its siblings above.
-  "engineering|Gene-level: fold-change" = "Gene-level: fold-change (no aggregation)",
+  # --- engineering / engineering_genewise: since 02_compare_engineering.R
+  # (geneset-only) and 02b_compare_engineering_genewise.R (gene-level-only)
+  # use identically-worded option labels across all three dataset folders
+  # (a deliberate choice when they were split into separate, geneset-vs-
+  # gene-wise scripts/categories - see each folder's 02b script), no
+  # override is needed for either category.
 
   # --- selection_geneset / selection_genewise: dearseq's "(geneset, ...)"/
   # "(gene, ...)" qualifier is redundant once split by category (geneset-
@@ -99,10 +80,11 @@ dataset_display_name <- function(dataset) {
 #' Human-readable display name for a `category` tag.
 category_display_name <- function(category) {
   lookup <- c(
-    engineering         = "Feature engineering",
-    selection_geneset   = "Feature selection (geneset-level)",
-    selection_genewise  = "Feature selection (gene-wise)",
-    model               = "Model choice"
+    engineering          = "Feature engineering",
+    engineering_genewise = "Feature engineering (gene-wise)",
+    selection_geneset    = "Feature selection (geneset-level)",
+    selection_genewise   = "Feature selection (gene-wise)",
+    model                = "Model choice"
   )
   unname(ifelse(category %in% names(lookup), lookup[category], category))
 }
@@ -117,14 +99,18 @@ category_display_name <- function(category) {
 #' saved metrics tables themselves (they carry option labels, not pipeline
 #' parameter values), so it's a manually-curated match to
 #' `R/pipeline_defaults.R`'s `reference_pipeline_params()` (used by
-#' `engineering`/`selection_geneset`/`model`) and
+#' `engineering`/`engineering_genewise`/`selection_geneset`/`model` - the
+#' gene-level engineering comparison is deliberately evaluated against the
+#' SAME mean-aggregation reference as the geneset comparison, since "does
+#' skipping aggregation help" is the question that reference answers) and
 #' `raw_gene_reference_params()` (used by `selection_genewise`).
 reference_option_label <- function(category) {
   lookup <- c(
-    engineering         = "Mean aggregation",
-    selection_geneset   = "Variance (top 7,500)",
-    selection_genewise  = "Variance (top 7,500)",
-    model               = "Elastic net"
+    engineering           = "Mean aggregation",
+    engineering_genewise  = "Mean aggregation",
+    selection_geneset     = "Variance (top 7,500)",
+    selection_genewise    = "Variance (top 7,500)",
+    model                 = "Elastic net"
   )
   unname(ifelse(category %in% names(lookup), lookup[category], "Reference"))
 }

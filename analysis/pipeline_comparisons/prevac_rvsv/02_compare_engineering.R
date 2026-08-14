@@ -5,14 +5,13 @@
 # pipeline (z-scored gene-level transform, mean gene-set aggregation,
 # elastic net model; see R/pipeline_defaults.R).
 #
-# Unlike sdy1276_tiv/02_compare_engineering.R, this uses a single
-# (day-7-only, post-vaccination) dataset throughout: 01_prepare_data.R
-# doesn't build a paired (baseline + day-7) dataset for this study (see that
-# script's header for why), so the individual-level fold-change gene-level
-# transformation isn't compared here. That also means the gene-level
-# ("none" vs. "z-score") and gene-set aggregation axes fit into a single
-# call/figure, rather than needing to be split across two like in
-# sdy1276_tiv/.
+# GENESET-ONLY: this is one of "the main analyses" (see this folder's
+# README.md) - only gene-set aggregation methods (median, max, 1st PC,
+# GSVA, ssGSEA) applied on top of a z-scored gene-level transform are
+# compared here, against the mean-aggregation reference. Gene-level
+# (no-aggregation) engineering - z-score vs. no transform - is compared
+# separately, as a SUPPLEMENTARY analysis, in
+# 02b_compare_engineering_genewise.R.
 #
 # treatment is not passed to this comparison - it's not used by any
 # engineering option, and treatment_predictor = FALSE (the default in
@@ -40,8 +39,6 @@ figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_rvs
 reference_params <- reference_pipeline_params(genesets)
 
 option_choices <- list(
-  "Gene-level: no transformation" = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
-  "Gene-level: z-score"   = list(method = "engineer", col_transform = "z", genesets = NULL, agg_method = "mean"),
   "Gene-set: median" = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "median"),
   "Gene-set: max"    = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "max"),
   "Gene-set: 1st PC" = list(method = "engineer", col_transform = "z", genesets = genesets, agg_method = "pc1"),
@@ -58,7 +55,7 @@ res <- run_pipeline_comparison(
 save_comparison_metrics(res, dataset = "prevac_rvsv", category = "engineering")
 
 p <- plot(res, metric = "R2") +
-  ggtitle("Pipeline comparison: feature engineering (PREVAC rVSV)")
+  ggtitle("Pipeline comparison: gene-set aggregation (PREVAC rVSV)")
 
 print(p)
 

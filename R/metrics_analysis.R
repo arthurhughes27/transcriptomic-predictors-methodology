@@ -33,15 +33,14 @@
 #'
 #' Option labels are then canonicalized (`canonicalize_option_label()`) so
 #' the same underlying choice, labelled slightly differently across dataset
-#' folders (e.g. "paired" vs "classic" RISE/dearseq, or SDY1276's "Gene-wise"
-#' vs PREVAC's "Gene-level: z-score"), is treated as one option. Where this
-#' canonicalization causes more than one row to share a
-#' `(dataset, category, canonical_option)` combination - which happens for
-#' SDY1276's engineering comparison, whose two separate `compare_pipelines()`
-#' calls both contribute a "z-score, no aggregation" option (see
-#' `R/metrics_labels.R`'s comments) - those rows' `delta_r2` values are
-#' averaged, so each dataset contributes at most one point per option to the
-#' downstream plots.
+#' folders (e.g. "paired" vs "classic" RISE/dearseq), is treated as one
+#' option. Where this canonicalization causes more than one row to share a
+#' `(dataset, category, canonical_option)` combination, those rows'
+#' `delta_r2` values are averaged, so each dataset contributes at most one
+#' point per option to the downstream plots - none of the current 02/02b/
+#' 03/03b/04 scripts actually produce such a duplicate (see
+#' `R/metrics_labels.R`'s comments), but this averaging is kept as a safe
+#' default for if one ever does.
 #'
 #' Each comparison's own `role == "reference"` row is also included as a
 #' row in the output, labelled via `reference_option_label()` (e.g.
