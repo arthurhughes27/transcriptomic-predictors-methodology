@@ -51,32 +51,52 @@ run_pipeline_comparison <- function(X, Y, covariates,
   )
 }
 
-#' Run `run_pipeline_comparison()`, but skip it entirely if a previous run
-#' was already cached to `cache_path` - so a comparison script (02, 02b, 03,
-#' 03b, 04) can be re-run (e.g. to re-generate its figure after a plotting
-#' tweak) without re-fitting every pipeline in it.
+#' Run `run_pipeline_comparison()`, but skip it entirely if this exact
+#' comparison's results are already saved - so a comparison script (02, 02b,
+#' 03, 03b, 04) can be re-run (e.g. to re-generate its figure after a
+#' plotting tweak) without re-fitting every pipeline in it.
 #'
-#' @param cache_path Path (e.g. from `R/metrics_io.R::comparison_cache_path()`)
-#'   to save/load the full `predictomics_comparison` object as an `.rds`
-#'   file. If it already exists, it's loaded and returned as-is - NOT
-#'   re-validated against the arguments below, so deleting the file (or
-#'   passing a different `cache_path`) is how to force a re-run after
-#'   changing an option, the reference pipeline, or the data.
-#' @param ... Forwarded to `run_pipeline_comparison()`.
+#' Reuses `R/metrics_io.R::save_comparison_metrics()`'s own save file
+#' (`metrics_dir()/<dataset>__<label>.rds`) as the cache, rather than a
+#' second, separate cache - every 02/02b/03/03b/04 script already calls
+#' `save_comparison_metrics()` right after this, so a metrics file existing
+#' already means "this comparison has been run before" (including runs from
+#' before this caching wrapper existed).
 #'
-#' @return A `predictomics_comparison` object, freshly fit or loaded from
-#'   cache.
-run_or_load_comparison <- function(cache_path, ...) {
-  if (fs::file_exists(cache_path)) {
-    message("[run_comparison] Loading cached comparison from ", cache_path,
+#' The trade-off: only `results` (not the full `predictomics_comparison`
+#' object - `fits`, `call`, etc. aren't saved by `save_comparison_metrics()`)
+#' survives the round trip through the metrics file. That's sufficient for
+#' every 02/02b/03/03b/04 script, which only ever calls `plot(res, metric = "R2")`
+#' - `plot.predictomics_comparison()` reads only `x$results` and
+#' `x$option_type` (`x$metric` only matters as a default when `metric` isn't
+#' passed explicitly, which these scripts always do) - so a minimal
+#' `predictomics_comparison`-classed stand-in with just those two fields is
+#' enough to reproduce the same figure.
+#'
+#' @param dataset,label As for `save_comparison_metrics()` - identify the
+#'   `metrics_dir()` file this comparison's results are saved to/loaded
+#'   from.
+#' @param option_type As for `run_pipeline_comparison()` - also needed here
+#'   (independent of `...`) to label a cache-loaded stand-in object's
+#'   `option_type` field for `plot()`'s title.
+#' @param ... Forwarded to `run_pipeline_comparison()` (which also expects
+#'   `option_type` among its named arguments - safe to pass once and have it
+#'   matched to both this function's explicit `option_type` and `...`, since
+#'   R resolves named arguments before `...`).
+#'
+#' @return A `predictomics_comparison` object (or, when loaded from cache, a
+#'   minimal stand-in with the same `results`/`option_type` fields `plot()`
+#'   needs).
+run_or_load_comparison <- function(dataset, label, option_type, ...) {
+  metrics_path <- fs::path(metrics_dir(), paste0(dataset, "__", label, ".rds"))
+
+  if (fs::file_exists(metrics_path)) {
+    message("[run_comparison] Loading cached comparison results from ", metrics_path,
             " (delete this file to force a re-run).")
-    return(readRDS(cache_path))
+    results <- readRDS(metrics_path)
+    return(structure(list(results = results, option_type = option_type),
+                      class = "predictomics_comparison"))
   }
 
-  res <- run_pipeline_comparison(...)
-
-  fs::dir_create(fs::path_dir(cache_path))
-  saveRDS(res, file = cache_path)
-
-  res
+  run_pipeline_comparison(option_type = option_type, ...)
 }

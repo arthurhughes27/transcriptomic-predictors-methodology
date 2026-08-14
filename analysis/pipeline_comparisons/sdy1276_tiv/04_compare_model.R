@@ -42,7 +42,7 @@ option_choices <- list(
 )
 
 res <- run_or_load_comparison(
-  cache_path = comparison_cache_path("sdy1276_tiv", "model"),
+  dataset = "sdy1276_tiv", label = "model",
   X = single$X, Y = single$Y, covariates = single$covariates,
   option_type = "model", option_choices = option_choices,
   reference_params = reference_params

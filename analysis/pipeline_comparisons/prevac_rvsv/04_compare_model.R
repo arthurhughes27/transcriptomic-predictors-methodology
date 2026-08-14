@@ -42,7 +42,7 @@ option_choices <- list(
 )
 
 res <- run_or_load_comparison(
-  cache_path = comparison_cache_path("prevac_rvsv", "model"),
+  dataset = "prevac_rvsv", label = "model",
   X = single$X, Y = single$Y, covariates = single$covariates,
   option_type = "model", option_choices = option_choices,
   reference_params = reference_params
