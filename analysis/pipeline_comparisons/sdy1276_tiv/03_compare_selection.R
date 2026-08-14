@@ -78,7 +78,7 @@ option_choices_geneset <- list(
 )
 
 res_geneset <- run_or_load_comparison(
-  cache_path = comparison_cache_path("sdy1276_tiv", "selection_geneset"),
+  dataset = "sdy1276_tiv", label = "selection_geneset",
   X = paired$X, Y = paired$Y, covariates = paired$covariates,
   individual_id = paired$participant_id, timepoint = paired$timepoint,
   option_type = "selection", option_choices = option_choices_geneset,

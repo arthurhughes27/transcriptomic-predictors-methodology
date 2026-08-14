@@ -53,7 +53,7 @@ option_choices <- list(
 )
 
 res <- run_or_load_comparison(
-  cache_path = comparison_cache_path("sdy1276_tiv", "engineering_genewise"),
+  dataset = "sdy1276_tiv", label = "engineering_genewise",
   X = paired$X, Y = paired$Y, covariates = paired$covariates,
   individual_id = paired$participant_id, timepoint = paired$timepoint,
   option_type = "engineering", option_choices = option_choices,

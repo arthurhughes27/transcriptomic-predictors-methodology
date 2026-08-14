@@ -70,7 +70,7 @@ option_choices_genewise <- list(
 )
 
 res_genewise <- run_or_load_comparison(
-  cache_path = comparison_cache_path("sdy1276_tiv", "selection_genewise"),
+  dataset = "sdy1276_tiv", label = "selection_genewise",
   X = paired$X, Y = paired$Y, covariates = paired$covariates,
   individual_id = paired$participant_id, timepoint = paired$timepoint,
   option_type = "selection", option_choices = option_choices_genewise,

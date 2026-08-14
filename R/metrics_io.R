@@ -20,22 +20,11 @@
 # silently mix a main and a supplementary comparison, or two different
 # baselines.
 
-#' Directory where per-comparison metrics tables are cached.
+#' Directory where per-comparison metrics tables are cached. Also doubles as
+#' the cache `R/run_comparison.R::run_or_load_comparison()` checks before
+#' re-fitting a comparison - see that function's docs.
 metrics_dir <- function() {
   fs::path("data", "derived", "metrics")
-}
-
-#' Path to cache a full `predictomics_comparison` object (not just its
-#' `results` table - see `save_comparison_metrics()`) for
-#' `R/run_comparison.R::run_or_load_comparison()`, so a comparison script
-#' can be re-run without re-fitting every pipeline in it.
-#'
-#' @param dataset,label As for `save_comparison_metrics()` - `label`
-#'   defaults to `dataset` alone only if not supplied, but callers should
-#'   normally pass the same `label` they'll use there, so the two stay
-#'   paired for a given comparison.
-comparison_cache_path <- function(dataset, label) {
-  fs::path("data", "derived", "comparisons", paste0(dataset, "__", label, ".rds"))
 }
 
 #' Save one `compare_pipelines()` comparison's results table, tagged with

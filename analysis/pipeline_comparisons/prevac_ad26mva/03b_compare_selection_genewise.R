@@ -61,7 +61,7 @@ option_choices_genewise <- list(
 )
 
 res_genewise <- run_or_load_comparison(
-  cache_path = comparison_cache_path("prevac_ad26mva", "selection_genewise"),
+  dataset = "prevac_ad26mva", label = "selection_genewise",
   X = single$X, Y = single$Y, covariates = single$covariates,
   treatment = single$treatment,
   option_type = "selection", option_choices = option_choices_genewise,
