@@ -13,11 +13,11 @@ source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "01_prepar
 
 source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "02_compare_engineering.R"))
 
-source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "02b_compare_engineering_genewise.R"))
+# source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "02b_compare_engineering_genewise.R"))
 
 source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "03_compare_selection.R"))
 
-source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "03b_compare_selection_genewise.R"))
+# source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "03b_compare_selection_genewise.R"))
 
 source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "04_compare_model.R"))
 

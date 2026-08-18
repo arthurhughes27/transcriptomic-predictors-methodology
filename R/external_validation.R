@@ -207,7 +207,7 @@ plot_validation_summary <- function(fit, title, subtitle, selection_top_n = 20) 
     error = function(e) {
       message("[validation] plot_selection_stability() failed: ", conditionMessage(e))
       ggplot2::ggplot() +
-        ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
+        ggplot2::annotate("text", x = 0, y = 0, label = "No feature selection performed.") +
         ggplot2::theme_void()
     }
   )

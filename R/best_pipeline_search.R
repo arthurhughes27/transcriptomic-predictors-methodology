@@ -353,13 +353,13 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20)
             message("[best model] plot_selection_stability(type = 'embedded') fallback also failed: ",
                     conditionMessage(e2))
             ggplot2::ggplot() +
-              ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
+              ggplot2::annotate("text", x = 0, y = 0, label = "No feature selection performed.") +
               ggplot2::theme_void()
           }
         )
       } else {
         ggplot2::ggplot() +
-          ggplot2::annotate("text", x = 0, y = 0, label = "Selection stability plot unavailable") +
+          ggplot2::annotate("text", x = 0, y = 0, label = "No feature selection performed.") +
           ggplot2::theme_void()
       }
     }
