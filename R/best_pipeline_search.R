@@ -316,7 +316,7 @@ describe_best_pipeline <- function(best) {
 #' @return A `patchwork` object (two aligned panels tagged "A)"/"B)", plus
 #'   the shared title/subtitle), or, if a panel fails to build, that panel is
 #'   replaced with a blank placeholder rather than aborting the whole figure.
-plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20) {
+plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 35) {
 
   p_fit <- tryCatch(plot(best_fit), error = function(e) {
     message("[best model] plot(best_fit) failed: ", conditionMessage(e))
