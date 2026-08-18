@@ -175,9 +175,38 @@ restrict_engineering_for_validation <- function(best, selected_features, geneset
 #' Run the validation fit: `predict_cv()` with a managed `future` parallel
 #' backend (mirroring `R/run_comparison.R::run_pipeline_comparison()`),
 #' `selection_params = NULL` throughout (see this file's header).
+#'
+#' `cv_type = "loo"` is incompatible with `agg_method %in% c("gsva", "ssgsea")`
+#' and is silently overridden to k-fold when both are requested together (see
+#' the `if` block below for why) - every other engineering choice keeps
+#' whatever `cv_type` is passed in.
+#'
+#' GSVA/ssGSEA have no reusable training fit: per `run_engineering()`'s own
+#' documentation, both are "recomputed independently on whatever matrix is
+#' passed" to `predict_engineering()`, i.e. on the held-out fold itself, not
+#' just on the training fold. Both estimate each gene's distribution (a
+#' kernel density for GSVA; a within-sample rank for ssGSEA) FROM the samples
+#' in that one call - with `cv_type = "loo"`, the held-out fold is exactly
+#' one sample, so that per-gene distribution is undefined for literally
+#' every gene (e.g. a single-sample variance is `NA` in R), and GSVA's own
+#' upfront gene filter drops all of them - surfacing as
+#' `.filterGenes(): Less than two rows left in the input assay object.`,
+#' regardless of how large or well-populated the gene sets themselves are.
+#' K-fold CV keeps multiple samples in every held-out fold, avoiding this
+#' degenerate case.
 run_validation_fit <- function(X, Y, covariates, engineering_params, model_params,
                                 cv_type = "loo", folds = 10, seed = 12345,
                                 n_workers = 6, verbose = TRUE) {
+
+  if (identical(cv_type, "loo") &&
+      isTRUE(engineering_params$agg_method %in% c("gsva", "ssgsea"))) {
+    message(sprintf(
+      "[validation] cv_type = 'loo' is incompatible with agg_method = '%s' (GSVA/ssGSEA cannot score a single-sample held-out fold - see run_validation_fit()'s docs) - falling back to %d-fold CV for this fit.",
+      engineering_params$agg_method, folds
+    ))
+    cv_type <- "kfold"
+  }
+
   future::plan(future::multisession, workers = n_workers)
   on.exit(future::plan(future::sequential), add = TRUE)
 
