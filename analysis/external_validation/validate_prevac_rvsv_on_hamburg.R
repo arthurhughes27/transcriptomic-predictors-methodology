@@ -37,7 +37,7 @@
 #
 # Run analysis/pipeline_comparisons/prevac_rvsv/00_master.R (through at
 # least 05_find_best_model.R) first, so that
-# data/derived/best_pipeline_prevac_rvsv.rds exists.
+# output/results/best_pipeline_prevac_rvsv.rds exists.
 
 library(dplyr)
 library(fs)
@@ -52,11 +52,11 @@ source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "metrics_labels.R"))
 source(fs::path("R", "external_validation.R"))
 
-derived_data_dir <- fs::path("data", "derived")
-fs::dir_create(derived_data_dir)
+results_dir <- fs::path("output", "results")
+fs::dir_create(results_dir)
 
-discovery <- readRDS(fs::path(derived_data_dir, "prevac_rvsv_analysis_data.rds"))
-best <- readRDS(fs::path(derived_data_dir, "best_pipeline_prevac_rvsv.rds"))
+discovery <- readRDS(fs::path(results_dir, "prevac_rvsv_analysis_data.rds"))
+best <- readRDS(fs::path(results_dir, "best_pipeline_prevac_rvsv.rds"))
 
 # --- Recover the fixed feature panel from PREVAC rVSV (discovery) ----------
 selected_features <- get_discovery_selected_features(
@@ -103,7 +103,7 @@ fit <- run_validation_fit(
   engineering_params = restricted$engineering_params, model_params = best$model_params
 )
 
-saveRDS(fit, file = fs::path(derived_data_dir, "validation_fit_prevac_rvsv_on_hamburg.rds"))
+saveRDS(fit, file = fs::path(results_dir, "validation_fit_prevac_rvsv_on_hamburg.rds"))
 
 figure_path <- fs::path("output", "figures", "external_validation")
 fs::dir_create(figure_path)

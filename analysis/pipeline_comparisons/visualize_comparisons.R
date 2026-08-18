@@ -51,7 +51,7 @@ source(fs::path("R", "metrics_analysis.R"))
 source(fs::path("R", "comparison_plots.R"))
 source(fs::path("R", "plotting.R"))
 
-all_metrics <- readRDS(fs::path("data", "derived", "pipeline_comparison_metrics.rds"))
+all_metrics <- readRDS(fs::path("output", "results", "pipeline_comparison_metrics.rds"))
 
 relative_metrics <- compute_relative_metrics(all_metrics)
 

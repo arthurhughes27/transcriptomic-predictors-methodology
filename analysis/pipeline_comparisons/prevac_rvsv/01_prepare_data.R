@@ -41,8 +41,8 @@ source(fs::path("R", "gene_columns.R"))
 source(fs::path("R", "build_dataset.R"))
 source(fs::path("R", "pipeline_defaults.R"))
 
-derived_data_dir <- fs::path("data", "derived")
-fs::dir_create(derived_data_dir)
+results_dir <- fs::path("output", "results")
+fs::dir_create(results_dir)
 
 df_merged_all <- load_merged_data()
 genesets <- load_genesets()
@@ -74,7 +74,7 @@ saveRDS(
     genesets = genesets,
     covariate_names = default_covariates
   ),
-  file = fs::path(derived_data_dir, "prevac_rvsv_analysis_data.rds")
+  file = fs::path(results_dir, "prevac_rvsv_analysis_data.rds")
 )
 
 rm(list = ls())
