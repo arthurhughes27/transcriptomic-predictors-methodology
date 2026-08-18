@@ -87,37 +87,89 @@ get_discovery_selected_features <- function(best, X, Y, covariates, treatment = 
 #' selection itself switched off (`selection_params = NULL`) since the
 #' feature panel is already fixed.
 #'
+#' When engineering aggregates into gene sets, every candidate gene set's
+#' member genes are ALSO restricted to those actually present in the
+#' validation dataset's gene panel (`validation_gene_names`) - the
+#' validation study's expression platform/panel need not cover exactly the
+#' same genes as the discovery study's - and any gene set left with too few
+#' surviving members for its aggregation method is dropped entirely. This
+#' matters most for `agg_method = "gsva"`/`"ssgsea"`: predictomics'
+#' `gsva_min_size`/`ssgsea_min_size` guard is only checked against the
+#' geneset definitions as given, not against how many of those genes are
+#' actually columns of a PARTICULAR dataset's X, so a gene set that clears
+#' the size guard on the discovery dataset can still end up with too few
+#' matching genes here - and, worse, GSVA/ssGSEA also drop constant genes
+#' internally on each CV fold's training subset, so even a gene set that
+#' looks large enough on the full validation dataset can occasionally end
+#' up under-size on a specific fold. A one-gene safety margin above the
+#' configured min_size (and a floor of 3 for `agg_method = "pc1"`, which
+#' needs at least 2 genes for a non-trivial first principal component) is
+#' kept as a buffer against exactly that per-fold case, rather than only
+#' guaranteeing the bare minimum on the full dataset.
+#'
 #' @param best A `find_best_pipeline()` result for the discovery dataset.
 #' @param selected_features As returned by `get_discovery_selected_features()`
 #'   (`NULL` if the winning pipeline had no selection step).
 #' @param genesets Named list of gene sets (see `R/data_io.R::load_genesets()`).
+#' @param validation_gene_names Character vector of gene names actually
+#'   available as columns of the validation dataset's X (i.e.
+#'   `colnames(X_validation)`) - ignored when engineering does not aggregate.
 #'
 #' @return A list with elements:
 #'   \describe{
 #'     \item{engineering_params}{`best$engineering_params`, with `genesets`
-#'       restricted to the selected gene sets when engineering aggregates
-#'       and a selection step fixed a subset.}
+#'       restricted to the selected gene sets (if a selection step fixed a
+#'       subset) and, either way, to gene sets with enough validation-
+#'       available member genes for their aggregation method - see Details.}
 #'     \item{fixed_gene_features}{Only set when engineering does NOT
 #'       aggregate and a selection step fixed a subset: the gene names to
 #'       subset the validation X matrix to BEFORE fitting (since, unlike the
 #'       gene-set case, there's no `engineering_params` field to restrict
 #'       instead). `NULL` otherwise.}
 #'   }
-restrict_engineering_for_validation <- function(best, selected_features, genesets) {
+restrict_engineering_for_validation <- function(best, selected_features, genesets,
+                                                 validation_gene_names = NULL) {
 
   engineering_params <- best$engineering_params
   aggregates <- !is.null(engineering_params$genesets)
 
-  if (is.null(selected_features)) {
-    return(list(engineering_params = engineering_params, fixed_gene_features = NULL))
+  if (!aggregates) {
+    return(list(
+      engineering_params = engineering_params,
+      fixed_gene_features = selected_features  # NULL is a valid "no restriction" value here too
+    ))
   }
 
-  if (aggregates) {
-    engineering_params$genesets <- genesets[intersect(names(genesets), selected_features)]
-    list(engineering_params = engineering_params, fixed_gene_features = NULL)
+  candidate_genesets <- if (is.null(selected_features)) {
+    genesets
   } else {
-    list(engineering_params = engineering_params, fixed_gene_features = selected_features)
+    genesets[intersect(names(genesets), selected_features)]
   }
+
+  min_size_required <- switch(
+    engineering_params$agg_method,
+    gsva   = (if (is.null(engineering_params$gsva_min_size)) 2 else engineering_params$gsva_min_size) + 1,
+    ssgsea = (if (is.null(engineering_params$ssgsea_min_size)) 2 else engineering_params$ssgsea_min_size) + 1,
+    pc1    = 3,
+    1
+  )
+
+  restricted_genesets <- lapply(candidate_genesets, function(members) {
+    intersect(members, validation_gene_names)
+  })
+  restricted_genesets <- restricted_genesets[lengths(restricted_genesets) >= min_size_required]
+
+  dropped <- setdiff(names(candidate_genesets), names(restricted_genesets))
+  if (length(dropped) > 0) {
+    message(sprintf(
+      "[validation] %d of %d gene sets have too few validation-available member genes (< %d) for agg_method = '%s' and will be dropped: %s",
+      length(dropped), length(candidate_genesets), min_size_required, engineering_params$agg_method,
+      paste(dropped, collapse = ", ")
+    ))
+  }
+
+  engineering_params$genesets <- restricted_genesets
+  list(engineering_params = engineering_params, fixed_gene_features = NULL)
 }
 
 #' Run the validation fit: `predict_cv()` with a managed `future` parallel

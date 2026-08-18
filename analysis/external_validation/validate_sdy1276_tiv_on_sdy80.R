@@ -70,8 +70,6 @@ selected_features <- get_discovery_selected_features(
   covariates = discovery$single$covariates, treatment = NULL
 )
 
-restricted <- restrict_engineering_for_validation(best, selected_features, discovery$genesets)
-
 # --- Build the SDY80 validation dataset -------------------------------------
 df_merged_all <- load_merged_data()
 
@@ -85,6 +83,16 @@ sdy80_single <- build_prediction_dataset(
 )
 
 X_validation <- sdy80_single$X
+
+# Built AFTER the validation dataset so gene-set restriction (for
+# aggregating engineering) can be checked against SDY80's own available
+# gene panel, not just the discovery-selected feature list - see
+# restrict_engineering_for_validation()'s docs for why this matters even
+# when there's no upstream selection step to intersect against.
+restricted <- restrict_engineering_for_validation(
+  best, selected_features, discovery$genesets,
+  validation_gene_names = colnames(X_validation)
+)
 
 if (!is.null(restricted$fixed_gene_features)) {
   available <- intersect(restricted$fixed_gene_features, colnames(X_validation))
