@@ -33,7 +33,7 @@ source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "plotting.R"))
 source(fs::path("R", "metrics_io.R"))
 
-analysis_data <- readRDS(fs::path("data", "derived", "prevac_rvsv_analysis_data.rds"))
+analysis_data <- readRDS(fs::path("output", "results", "prevac_rvsv_analysis_data.rds"))
 single <- analysis_data$single
 
 figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_rvsv")

@@ -19,7 +19,7 @@
 #
 # The greedy search itself (3 compare_pipelines() calls) is re-run only if
 # no saved result exists yet at
-# derived_data_dir/best_pipeline_prevac_ad26mva.rds - once found,
+# results_dir/best_pipeline_prevac_ad26mva.rds - once found,
 # `best`/`best_fit` are just reloaded, so the plotting code below can be
 # iterated on without re-searching every time.
 
@@ -34,11 +34,11 @@ source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "metrics_labels.R"))
 source(fs::path("R", "best_pipeline_search.R"))
 
-derived_data_dir <- fs::path("data", "derived")
-fs::dir_create(derived_data_dir)
+results_dir <- fs::path("output", "results")
+fs::dir_create(results_dir)
 
-best_path <- fs::path(derived_data_dir, "best_pipeline_prevac_ad26mva.rds")
-best_fit_path <- fs::path(derived_data_dir, "best_model_fit_prevac_ad26mva.rds")
+best_path <- fs::path(results_dir, "best_pipeline_prevac_ad26mva.rds")
+best_fit_path <- fs::path(results_dir, "best_model_fit_prevac_ad26mva.rds")
 
 if (fs::file_exists(best_path) && fs::file_exists(best_fit_path)) {
 
@@ -47,7 +47,7 @@ if (fs::file_exists(best_path) && fs::file_exists(best_fit_path)) {
 
 } else {
 
-  analysis_data <- readRDS(fs::path("data", "derived", "prevac_ad26mva_analysis_data.rds"))
+  analysis_data <- readRDS(fs::path("output", "results", "prevac_ad26mva_analysis_data.rds"))
   single <- analysis_data$single
   genesets <- analysis_data$genesets
 

@@ -37,9 +37,9 @@ print(
     dplyr::arrange(dataset, category, comparison)
 )
 
-derived_data_dir <- fs::path("data", "derived")
-fs::dir_create(derived_data_dir)
+results_dir <- fs::path("output", "results")
+fs::dir_create(results_dir)
 
-saveRDS(all_metrics, file = fs::path(derived_data_dir, "pipeline_comparison_metrics.rds"))
+saveRDS(all_metrics, file = fs::path(results_dir, "pipeline_comparison_metrics.rds"))
 
 rm(list = ls())

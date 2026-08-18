@@ -38,7 +38,7 @@ source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "plotting.R"))
 source(fs::path("R", "metrics_io.R"))
 
-analysis_data <- readRDS(fs::path("data", "derived", "sdy1276_tiv_analysis_data.rds"))
+analysis_data <- readRDS(fs::path("output", "results", "sdy1276_tiv_analysis_data.rds"))
 paired <- analysis_data$paired
 genesets <- analysis_data$genesets
 

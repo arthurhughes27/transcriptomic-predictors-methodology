@@ -24,7 +24,7 @@
 #' the cache `R/run_comparison.R::run_or_load_comparison()` checks before
 #' re-fitting a comparison - see that function's docs.
 metrics_dir <- function() {
-  fs::path("data", "derived", "metrics")
+  fs::path("output", "results", "metrics")
 }
 
 #' Save one `compare_pipelines()` comparison's results table, tagged with
