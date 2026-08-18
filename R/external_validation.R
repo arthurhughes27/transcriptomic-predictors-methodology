@@ -69,7 +69,7 @@ get_discovery_selected_features <- function(best, X, Y, covariates, treatment = 
       selection_params   = best$selection_params,
       model_params        = best$model_params,
       outside_cv = TRUE,
-      cv_type = "kfold", folds = 5, seed = 12345,
+      cv_type = "kfold", folds = 10, seed = 12345,
       verbose = FALSE
     )
   )
@@ -124,7 +124,7 @@ restrict_engineering_for_validation <- function(best, selected_features, geneset
 #' backend (mirroring `R/run_comparison.R::run_pipeline_comparison()`),
 #' `selection_params = NULL` throughout (see this file's header).
 run_validation_fit <- function(X, Y, covariates, engineering_params, model_params,
-                                cv_type = "loo", folds = 5, seed = 12345,
+                                cv_type = "loo", folds = 10, seed = 12345,
                                 n_workers = 6, verbose = TRUE) {
   future::plan(future::multisession, workers = n_workers)
   on.exit(future::plan(future::sequential), add = TRUE)

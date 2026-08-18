@@ -27,7 +27,7 @@ default_covariates <- c("age", "sex", "race")
 #'   tuning (see Chapter 5, Section 5.3.1).
 #' @param model_metric Metric used to select model hyperparameters in the
 #'   inner CV loop.
-reference_pipeline_params <- function(genesets, model_inner_folds = 5, model_metric = "r2") {
+reference_pipeline_params <- function(genesets, model_inner_folds = 10, model_metric = "r2") {
   list(
     engineering_params = list(
       method = "engineer",
@@ -55,7 +55,7 @@ reference_pipeline_params <- function(genesets, model_inner_folds = 5, model_met
 #' @param model_inner_folds,model_metric As in reference_pipeline_params().
 #' @param variance_top_n Number of genes retained by the variance pre-filter.
 #'   Matches reference_pipeline_params()'s default (7,500) unless overridden.
-raw_gene_reference_params <- function(model_inner_folds = 5, model_metric = "r2",
+raw_gene_reference_params <- function(model_inner_folds = 10, model_metric = "r2",
                                        variance_top_n = 7500) {
   list(
     engineering_params = list(

@@ -63,7 +63,7 @@
 #' Elastic net, the default model used while searching the engineering and
 #' selection axes (rounds 1-2), before model choice is itself searched
 #' (round 3).
-default_search_model_params <- function(inner_folds = 5, metric = "r2") {
+default_search_model_params <- function(inner_folds = 10, metric = "r2") {
   list(method = "glmnet", inner_folds = inner_folds, metric = metric)
 }
 
@@ -104,7 +104,7 @@ selection_geneset_search_menu <- function(genesets, dearseq_mode = NULL) {
     "Correlation - Pearson (|r| > 0.5)"  = list(method = "pearson", threshold = 0.5),
     "Univariate regression screening (threshold = 0)" = list(
       method = "relative_gain", threshold = 0,
-      relative_gain_inner_folds = 5, relative_gain_metric = "rmse"
+      relative_gain_inner_folds = 10, relative_gain_metric = "rmse"
     )
   )
   if (!is.null(dearseq_mode)) {
@@ -117,7 +117,7 @@ selection_geneset_search_menu <- function(genesets, dearseq_mode = NULL) {
 }
 
 #' Model options compared in round 3. Same menu for every dataset.
-model_search_menu <- function(inner_folds = 5, metric = "r2") {
+model_search_menu <- function(inner_folds = 10, metric = "r2") {
   list(
     "Linear regression"         = list(method = "lm", inner_folds = inner_folds, metric = metric),
     "Lasso"                     = list(method = "lasso", inner_folds = inner_folds, metric = metric),

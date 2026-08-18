@@ -26,7 +26,7 @@ run_pipeline_comparison <- function(X, Y, covariates,
                                      option_type, option_choices, reference_params,
                                      treatment = NULL, treatment_predictor = FALSE,
                                      timepoint = NULL, individual_id = NULL,
-                                     cv_type = "kfold", folds = 5, seed = 12345,
+                                     cv_type = "kfold", folds = 10, seed = 12345,
                                      n_workers = 6, verbose = TRUE) {
   future::plan(future::multisession, workers = n_workers)
   on.exit(future::plan(future::sequential), add = TRUE)
