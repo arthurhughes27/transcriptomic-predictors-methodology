@@ -75,7 +75,7 @@ p_summary <- plot_best_model_summary(best_fit, best, title = "SDY1276 (TIV): bes
 print(p_summary)
 ggsave(
   fs::path(figure_path, "best_model_summary_sdy1276_tiv.pdf"),
-  p_summary, width = 12, height = 6, dpi = 300
+  p_summary, width = 13, height = 6, dpi = 300
 )
 
 rm(list = ls())
