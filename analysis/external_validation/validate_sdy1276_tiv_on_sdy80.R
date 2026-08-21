@@ -54,6 +54,7 @@ source(fs::path("R", "build_dataset.R"))
 source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "metrics_labels.R"))
 source(fs::path("R", "external_validation.R"))
+source(fs::path("R", "panel_helpers.R"))
 
 results_dir <- fs::path("output", "results")
 fs::dir_create(results_dir)
@@ -123,6 +124,7 @@ fs::dir_create(figure_path)
 
 p_summary <- plot_validation_summary(
   fit,
+  model_params = best$model_params,
   title = "SDY1276 (TIV) best pipeline: validated on SDY80",
   subtitle = validation_subtitle(best, ncol(X_validation))
 )
