@@ -64,7 +64,7 @@
 #' selection axes (rounds 1-2), before model choice is itself searched
 #' (round 3).
 default_search_model_params <- function(inner_folds = 10, metric = "r2") {
-  list(method = "glmnet", inner_folds = inner_folds, metric = metric)
+  list(method = "glmnet", inner_folds = inner_folds, metric = metric, scale = TRUE)
 }
 
 #' Engineering options compared in round 1: the five gene-set aggregation
