@@ -235,11 +235,20 @@ find_best_pipeline <- function(X, Y, covariates, treatment = NULL, genesets,
     model_params        = model_params_default
   )
 
+  # diagnostics = "full": unlike rounds 1-2, round 3's winning fit is the
+  # one actually saved and reused for downstream interpretation (best_fit -
+  # see 05_find_best_model.R and plot_best_model_summary()), so it needs to
+  # keep model_params$compute_importance = TRUE's per-feature scores rather
+  # than have them stripped by the default "summary" diagnostics (see
+  # R/run_comparison.R::run_pipeline_comparison()'s docs) - otherwise
+  # predictomics::plot_feature_importance() has nothing to plot for a
+  # winner with no explicit or embedded selection.
   res3 <- run_pipeline_comparison(
     X = X, Y = Y, covariates = covariates, treatment = treatment,
     option_type = "model",
     option_choices = model_search_menu(),
-    reference_params = reference_params3
+    reference_params = reference_params3,
+    diagnostics = "full"
   )
 
   winner3 <- .pick_round_winner(res3)
