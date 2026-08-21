@@ -34,11 +34,11 @@ figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_ad2
 reference_params <- reference_pipeline_params(genesets)
 
 option_choices <- list(
-  "Linear regression"         = list(method = "lm", inner_folds = 10, metric = "r2"),
-  "Lasso"                     = list(method = "lasso", inner_folds = 10, metric = "r2"),
-  "Ridge"                     = list(method = "ridge", inner_folds = 10, metric = "r2"),
-  "Random forest"             = list(method = "ranger", inner_folds = 10, metric = "r2"),
-  "Support vector regression" = list(method = "svr", inner_folds = 10, metric = "r2")
+  "Linear regression"         = list(method = "lm", inner_folds = 10, metric = "r2", scale = TRUE, compute_importance = TRUE),
+  "Lasso"                     = list(method = "lasso", inner_folds = 10, metric = "r2", scale = TRUE, compute_importance = TRUE),
+  "Ridge"                     = list(method = "ridge", inner_folds = 10, metric = "r2", scale = TRUE, compute_importance = TRUE),
+  "Random forest"             = list(method = "ranger", inner_folds = 10, metric = "r2", scale = TRUE, compute_importance = TRUE),
+  "Support vector regression" = list(method = "svr", inner_folds = 10, metric = "r2", scale = TRUE, compute_importance = TRUE)
 )
 
 res <- run_or_load_comparison(
