@@ -31,6 +31,7 @@ source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "metrics_labels.R"))
 source(fs::path("R", "best_pipeline_search.R"))
+source(fs::path("R", "panel_helpers.R"))
 
 results_dir <- fs::path("output", "results")
 fs::dir_create(results_dir)

@@ -260,21 +260,28 @@ validation_subtitle <- function(best, n_features_used) {
 }
 
 #' Combine a validation fit's CV-prediction plot and selection-frequency
-#' stability plot into a single side-by-side figure, labelled A) and B) -
-#' the validation analogue of
+#' stability (or feature-importance) plot into a single side-by-side
+#' figure, labelled A) and B) - the validation analogue of
 #' `R/best_pipeline_search.R::plot_best_model_summary()`.
 #'
-#' Stability is always read via `type = "embedded"`: validation fits are
-#' always run with `selection_params = NULL` (see this file's header), so
-#' there is never a filter-selection step to diagnose via `type = "explicit"`
-#' - only the model's own embedded selection (e.g. elastic net's per-fold
-#' non-zero coefficients) is available.
+#' Validation fits always run with `selection_params = NULL` (see this
+#' file's header), so there is never a filter-selection step to diagnose -
+#' the B) panel is therefore always either the model's own embedded
+#' selection (e.g. elastic net/lasso's per-fold non-zero coefficients) or,
+#' for a model with no embedded selection of its own (e.g. SVR/random
+#' forest/(un)regularised regression), `predictomics::plot_feature_importance()`
+#' instead - see `R/panel_helpers.R::build_selection_or_importance_panel()`.
 #'
 #' @param fit The validation `predict_cv()` fit.
+#' @param model_params The `model_params` `fit` was produced with (i.e.
+#'   `best$model_params` from the discovery pipeline, carried over unchanged
+#'   - see this file's header) - determines whether B) can show embedded
+#'   selection or needs feature importance instead.
 #' @param title Overall figure title (e.g. "PREVAC Ad26/MVA -> EBOVAC2").
 #' @param subtitle As built by `validation_subtitle()`.
-#' @param selection_top_n `top_n` passed to `plot_selection_stability()`.
-plot_validation_summary <- function(fit, title, subtitle, selection_top_n = 20) {
+#' @param selection_top_n `top_n` passed through to whichever plot B) ends
+#'   up being.
+plot_validation_summary <- function(fit, model_params, title, subtitle, selection_top_n = 20) {
 
   p_fit <- tryCatch(plot(fit), error = function(e) {
     message("[validation] plot(fit) failed: ", conditionMessage(e))
@@ -283,14 +290,12 @@ plot_validation_summary <- function(fit, title, subtitle, selection_top_n = 20) 
       ggplot2::theme_void()
   })
 
-  p_stability <- tryCatch(
-    plot_selection_stability(fit, top_n = selection_top_n, type = "embedded", plot_type = "frequency"),
-    error = function(e) {
-      message("[validation] plot_selection_stability() failed: ", conditionMessage(e))
-      ggplot2::ggplot() +
-        ggplot2::annotate("text", x = 0, y = 0, label = "No feature selection performed.") +
-        ggplot2::theme_void()
-    }
+  # selection_params = NULL always for validation fits (see this file's
+  # header) - build_selection_or_importance_panel() falls back to
+  # plot_feature_importance() whenever model_params$method also has no
+  # embedded selection of its own.
+  p_stability <- build_selection_or_importance_panel(
+    fit, selection_params = NULL, model_params = model_params, top_n = selection_top_n
   )
 
   # As in plot_best_model_summary(): no guides = "collect", so the CV plot

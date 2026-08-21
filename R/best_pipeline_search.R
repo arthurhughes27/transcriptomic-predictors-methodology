@@ -64,7 +64,8 @@
 #' selection axes (rounds 1-2), before model choice is itself searched
 #' (round 3).
 default_search_model_params <- function(inner_folds = 10, metric = "r2") {
-  list(method = "glmnet", inner_folds = inner_folds, metric = metric, scale = TRUE)
+  list(method = "glmnet", inner_folds = inner_folds, metric = metric, scale = TRUE,
+       compute_importance = TRUE)
 }
 
 #' Engineering options compared in round 1: the five gene-set aggregation
@@ -117,13 +118,20 @@ selection_geneset_search_menu <- function(genesets, dearseq_mode = NULL) {
 }
 
 #' Model options compared in round 3. Same menu for every dataset.
+#'
+#' `compute_importance = TRUE` throughout: whichever model wins, its saved
+#' fit then supports `predictomics::plot_feature_importance()` - needed for
+#' the combined best-model summary figure's B) panel
+#' (`plot_best_model_summary()`/`R/panel_helpers.R`) whenever the winner has
+#' no explicit filter step AND no embedded selection of its own (i.e.
+#' anything other than "lasso"/"glmnet" here).
 model_search_menu <- function(inner_folds = 10, metric = "r2") {
   list(
-    "Linear regression"         = list(method = "lm", inner_folds = inner_folds, metric = metric),
-    "Lasso"                     = list(method = "lasso", inner_folds = inner_folds, metric = metric),
-    "Ridge"                     = list(method = "ridge", inner_folds = inner_folds, metric = metric),
-    "Random forest"             = list(method = "ranger", inner_folds = inner_folds, metric = metric),
-    "Support vector regression" = list(method = "svr", inner_folds = inner_folds, metric = metric)
+    "Linear regression"         = list(method = "lm", inner_folds = inner_folds, metric = metric, compute_importance = TRUE),
+    "Lasso"                     = list(method = "lasso", inner_folds = inner_folds, metric = metric, compute_importance = TRUE),
+    "Ridge"                     = list(method = "ridge", inner_folds = inner_folds, metric = metric, compute_importance = TRUE),
+    "Random forest"             = list(method = "ranger", inner_folds = inner_folds, metric = metric, compute_importance = TRUE),
+    "Support vector regression" = list(method = "svr", inner_folds = inner_folds, metric = metric, compute_importance = TRUE)
   )
 }
 
@@ -325,44 +333,10 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 35)
       ggplot2::theme_void()
   })
 
-  # A within-fold filter selection step (best$selection_params not NULL,
-  # e.g. variance/correlation/RISE/dearseq) is diagnosed via its own
-  # per-fold selection record (type = "explicit"). When the winning
-  # pipeline has NO such filter step, stability is instead read off the
-  # model's own per-fold embedded selection (e.g. lasso/glmnet non-zero
-  # coefficients; type = "embedded") - there's still a selection step to
-  # diagnose, just one performed by the model rather than a separate filter.
-  stability_type <- if (is.null(best$selection_params)) "embedded" else "explicit"
-
-  p_stability <- tryCatch(
-    plot_selection_stability(best_fit, top_n = selection_top_n, type = stability_type, plot_type = "frequency"),
-    error = function(e) {
-      message("[best model] plot_selection_stability(type = '", stability_type,
-              "') failed: ", conditionMessage(e))
-      # A filter selection step (dearseq/RISE/etc.) has explicit per-fold
-      # diagnostics only when it actually ran as a distinct filter stage;
-      # if that's unavailable for some reason, fall back to the model's own
-      # embedded selection diagnostics (e.g. elastic net's non-zero
-      # coefficients per fold) rather than giving up on the panel entirely -
-      # any glmnet/lasso/ridge model here still performs its own per-fold
-      # selection, whether or not a separate filter step preceded it.
-      if (stability_type == "explicit") {
-        tryCatch(
-          plot_selection_stability(best_fit, top_n = selection_top_n, type = "embedded", plot_type = "frequency"),
-          error = function(e2) {
-            message("[best model] plot_selection_stability(type = 'embedded') fallback also failed: ",
-                    conditionMessage(e2))
-            ggplot2::ggplot() +
-              ggplot2::annotate("text", x = 0, y = 0, label = "No feature selection performed.") +
-              ggplot2::theme_void()
-          }
-        )
-      } else {
-        ggplot2::ggplot() +
-          ggplot2::annotate("text", x = 0, y = 0, label = "No feature selection performed.") +
-          ggplot2::theme_void()
-      }
-    }
+  # See R/panel_helpers.R::build_selection_or_importance_panel() for the
+  # explicit-selection / embedded-selection / feature-importance choice.
+  p_stability <- build_selection_or_importance_panel(
+    best_fit, best$selection_params, best$model_params, top_n = selection_top_n
   )
 
   # No guides = "collect" here: collecting would pool p_fit's legend with
