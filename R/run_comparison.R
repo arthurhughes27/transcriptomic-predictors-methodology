@@ -22,12 +22,25 @@
 #' @param cv_type,folds,seed Outer cross-validation settings.
 #' @param n_workers Number of parallel workers for `future::multisession`.
 #' @param verbose Passed through to `compare_pipelines()`.
+#' @param diagnostics Passed through to `compare_pipelines()`. Defaults to
+#'   `"summary"`, which strips the dense, every-feature-per-fold diagnostics
+#'   (`fold_selection_diagnostics$selection_scores`,
+#'   `dearseq_selection`/`outside_cv_selection$selection_scores`, and -
+#'   relevantly for `model_params$compute_importance = TRUE` -
+#'   `fold_feature_importance[[k]]$scores`) from every returned fit to keep
+#'   memory down when comparing many pipelines. Pass `"full"` when a
+#'   specific fit needs to be kept for downstream per-feature
+#'   interpretation (e.g. `predictomics::plot_feature_importance()` or
+#'   `plot_selection_stability()`) rather than just its summary metrics -
+#'   see `R/best_pipeline_search.R::find_best_pipeline()`'s round 3 for why
+#'   only that round uses `"full"`.
 run_pipeline_comparison <- function(X, Y, covariates,
                                      option_type, option_choices, reference_params,
                                      treatment = NULL, treatment_predictor = FALSE,
                                      timepoint = NULL, individual_id = NULL,
                                      cv_type = "kfold", folds = 10, seed = 12345,
-                                     n_workers = 6, verbose = TRUE) {
+                                     n_workers = 6, verbose = TRUE,
+                                     diagnostics = "summary") {
   future::plan(future::multisession, workers = n_workers)
   on.exit(future::plan(future::sequential), add = TRUE)
 
@@ -47,7 +60,7 @@ run_pipeline_comparison <- function(X, Y, covariates,
     outside_cv = FALSE,
     timepoint = timepoint,
     individual_id = individual_id,
-    diagnostics = "summary"
+    diagnostics = diagnostics
   )
 }
 
