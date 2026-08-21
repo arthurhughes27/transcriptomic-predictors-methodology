@@ -11,14 +11,28 @@
 
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "01_prepare_data.R"))
 
+gc()
+
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "02_compare_engineering.R"))
+
+gc()
 
 # source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "02b_compare_engineering_genewise.R"))
 
+gc()
+
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "03_compare_selection.R"))
+
+gc()
 
 # source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "03b_compare_selection_genewise.R"))
 
+gc()
+
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "04_compare_model.R"))
 
+gc()
+
 source(fs::path("analysis", "pipeline_comparisons", "prevac_rvsv", "05_find_best_model.R"))
+
+gc()

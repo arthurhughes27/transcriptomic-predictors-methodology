@@ -11,16 +11,30 @@
 
 source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "01_prepare_data.R"))
 
+gc()
+
 source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "02_compare_engineering.R"))
+
+gc()
 
 # source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "02b_compare_engineering_genewise.R"))
 
+gc()
+
 source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "03_compare_selection.R"))
+
+gc()
 
 # source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "03b_compare_selection_genewise.R"))
 
+gc()
+
 source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "04_compare_model.R"))
 
+gc()
+
 source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "05_find_best_model.R"))
+
+gc()
 
 source(fs::path("analysis", "pipeline_comparisons", "sdy1276_tiv", "06_plot_cv_by_sex.R"))
