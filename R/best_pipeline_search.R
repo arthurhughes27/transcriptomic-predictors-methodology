@@ -127,11 +127,11 @@ selection_geneset_search_menu <- function(genesets, dearseq_mode = NULL) {
 #' anything other than "lasso"/"glmnet" here).
 model_search_menu <- function(inner_folds = 10, metric = "r2") {
   list(
-    "Linear regression"         = list(method = "lm", inner_folds = inner_folds, metric = metric, compute_importance = TRUE),
-    "Lasso"                     = list(method = "lasso", inner_folds = inner_folds, metric = metric, compute_importance = TRUE),
-    "Ridge"                     = list(method = "ridge", inner_folds = inner_folds, metric = metric, compute_importance = TRUE),
-    "Random forest"             = list(method = "ranger", inner_folds = inner_folds, metric = metric, compute_importance = TRUE),
-    "Support vector regression" = list(method = "svr", inner_folds = inner_folds, metric = metric, compute_importance = TRUE)
+    "Linear regression"         = list(method = "lm", inner_folds = inner_folds, metric = metric, scale = TRUE, compute_importance = TRUE),
+    "Lasso"                     = list(method = "lasso", inner_folds = inner_folds, metric = metric, scale = TRUE, compute_importance = TRUE),
+    "Ridge"                     = list(method = "ridge", inner_folds = inner_folds, metric = metric, scale = TRUE, compute_importance = TRUE),
+    "Random forest"             = list(method = "ranger", inner_folds = inner_folds, metric = metric, scale = TRUE, compute_importance = TRUE),
+    "Support vector regression" = list(method = "svr", inner_folds = inner_folds, metric = metric, scale = TRUE, compute_importance = TRUE)
   )
 }
 

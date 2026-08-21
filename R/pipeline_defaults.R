@@ -37,7 +37,7 @@ reference_pipeline_params <- function(genesets, model_inner_folds = 10, model_me
       agg_method = "mean"
     ),
     selection_params = list(method = "variance", top_n = 7500),
-    model_params = list(method = "glmnet", inner_folds = model_inner_folds, metric = model_metric, scale = TRUE)
+    model_params = list(method = "glmnet", inner_folds = model_inner_folds, metric = model_metric, scale = TRUE, compute_importance = TRUE)
   )
 }
 
@@ -66,6 +66,6 @@ raw_gene_reference_params <- function(model_inner_folds = 10, model_metric = "r2
       agg_method = "mean"
     ),
     selection_params = list(method = "variance", top_n = variance_top_n),
-    model_params = list(method = "glmnet", inner_folds = model_inner_folds, metric = model_metric, scale = TRUE)
+    model_params = list(method = "glmnet", inner_folds = model_inner_folds, metric = model_metric, scale = TRUE, compute_importance = TRUE)
   )
 }
