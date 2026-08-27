@@ -6,9 +6,13 @@
 #   - dataset_characteristics_table.R: manuscript-ready LaTeX table
 #     summarising the exploration and external-validation cohorts (see
 #     that script's header).
+#   - model_hyperparameters_table.R: manuscript-ready LaTeX table of each
+#     regression method's hyperparameters and tuning grids (see that
+#     script's header) - static (a property of the code, not any dataset),
+#     so it doesn't need data/df_merged_all.rds.
 #
-# Run analysis/preprocessing/master_preprocessing.R first (both scripts
-# read from data/df_merged_all.rds).
+# Run analysis/preprocessing/master_preprocessing.R first (study_descriptions.R
+# and dataset_characteristics_table.R both read from data/df_merged_all.rds).
 #
 # As elsewhere in this repository, every source() call below re-specifies
 # its own full path rather than reusing a shared variable, since each
@@ -19,3 +23,5 @@
 source(fs::path("analysis", "descriptive", "study_descriptions.R"))
 
 source(fs::path("analysis", "descriptive", "dataset_characteristics_table.R"))
+
+source(fs::path("analysis", "descriptive", "model_hyperparameters_table.R"))
