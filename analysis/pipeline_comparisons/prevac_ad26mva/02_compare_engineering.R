@@ -11,7 +11,7 @@
 # compared here, against the mean-aggregation reference. Gene-level
 # (no-aggregation) engineering - z-score vs. no transform - is compared
 # separately, as a SUPPLEMENTARY analysis, in
-# 02b_compare_engineering_genewise.R.
+# analysis/supplementary/prevac_ad26mva/01_compare_engineering_genewise.R.
 #
 # treatment is not passed to this comparison - it's not used by any
 # engineering option, and treatment_predictor = FALSE (the default in

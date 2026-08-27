@@ -1,4 +1,13 @@
-# analysis/pipeline_comparisons/prevac_ad26mva/03b_compare_selection_genewise.R
+# analysis/supplementary/prevac_ad26mva/02_compare_selection_genewise.R
+#
+# NOTE: this used to live at analysis/pipeline_comparisons/prevac_ad26mva/
+# 03b_compare_selection_genewise.R - moved here (and the "03b" cut to "02")
+# so this SUPPLEMENTARY, gene-wise comparison is entirely separate from the
+# main analysis: it is not sourced by
+# analysis/pipeline_comparisons/prevac_ad26mva/00_master.R and does not run as part of
+# analysis/master_analysis.R. Run it (and its sibling
+# 01_compare_engineering_genewise.R) via analysis/supplementary/prevac_ad26mva/00_master.R,
+# or analysis/supplementary/master_supplementary.R for all three datasets.
 #
 # SUPPLEMENTARY comparison: feature selection at the gene-wise (raw gene,
 # no gene-set aggregation) level, for predicting PREVAC Ad26/MVA
@@ -36,7 +45,7 @@ source(fs::path("R", "metrics_io.R"))
 analysis_data <- readRDS(fs::path("output", "results", "prevac_ad26mva_analysis_data.rds"))
 single <- analysis_data$single
 
-figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_ad26mva")
+figure_path <- fs::path("output", "figures", "supplementary", "prevac_ad26mva")
 
 reference_params_genewise <- raw_gene_reference_params()
 
@@ -62,13 +71,14 @@ option_choices_genewise <- list(
 
 res_genewise <- run_or_load_comparison(
   dataset = "prevac_ad26mva", label = "selection_genewise",
+  metrics_subdir = "supplementary",
   X = single$X, Y = single$Y, covariates = single$covariates,
   treatment = single$treatment,
   option_type = "selection", option_choices = option_choices_genewise,
   reference_params = reference_params_genewise
 )
 
-save_comparison_metrics(res_genewise, dataset = "prevac_ad26mva", category = "selection_genewise")
+save_comparison_metrics(res_genewise, dataset = "prevac_ad26mva", category = "selection_genewise", subdir = "supplementary")
 
 p_genewise <- plot(res_genewise, metric = "R2") +
   ggtitle("Pipeline comparison: gene-wise feature selection (PREVAC Ad26/MVA)")

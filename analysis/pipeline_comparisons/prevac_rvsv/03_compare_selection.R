@@ -5,7 +5,7 @@
 # pipeline (mean gene-set aggregation; see
 # R/pipeline_defaults.R::reference_pipeline_params()). This is the ONLY
 # feature-selection comparison treated as a "reference" comparison for this
-# dataset - see 03b_compare_selection_genewise.R for the supplementary,
+# dataset - see analysis/supplementary/prevac_rvsv/02_compare_selection_genewise.R for the supplementary,
 # gene-wise (raw gene, no aggregation) comparison, which uses a different
 # reference pipeline and is not used to characterise "the" reference
 # approach for this dataset (e.g. in

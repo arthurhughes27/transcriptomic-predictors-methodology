@@ -1,4 +1,13 @@
-# analysis/pipeline_comparisons/prevac_ad26mva/02b_compare_engineering_genewise.R
+# analysis/supplementary/prevac_ad26mva/01_compare_engineering_genewise.R
+#
+# NOTE: this used to live at analysis/pipeline_comparisons/prevac_ad26mva/
+# 02b_compare_engineering_genewise.R - moved here (and the "02b" cut to "01")
+# so this SUPPLEMENTARY, gene-wise comparison is entirely separate from the
+# main analysis: it is not sourced by
+# analysis/pipeline_comparisons/prevac_ad26mva/00_master.R and does not run as part of
+# analysis/master_analysis.R. Run it (and its sibling
+# 02_compare_selection_genewise.R) via analysis/supplementary/prevac_ad26mva/00_master.R,
+# or analysis/supplementary/master_supplementary.R for all three datasets.
 #
 # SUPPLEMENTARY comparison: gene-level (no gene-set aggregation) engineering
 # choices for predicting PREVAC Ad26/MVA (+ placebo) day-180 antibody titer
@@ -15,7 +24,7 @@
 # for "the" dataset-level baseline (see this folder's README.md for the
 # geneset/gene-wise separation).
 #
-# Unlike sdy1276_tiv/02b_compare_engineering_genewise.R, individual-level
+# Unlike analysis/supplementary/sdy1276_tiv/01_compare_engineering_genewise.R, individual-level
 # fold-change isn't compared here: 01_prepare_data.R doesn't build a paired
 # (baseline + day-7) dataset for this study (see that script's header for
 # why), so this uses the single (day-7-only) dataset throughout.
@@ -41,7 +50,7 @@ analysis_data <- readRDS(fs::path("output", "results", "prevac_ad26mva_analysis_
 single <- analysis_data$single
 genesets <- analysis_data$genesets
 
-figure_path <- fs::path("output", "figures", "pipeline_comparisons", "prevac_ad26mva")
+figure_path <- fs::path("output", "figures", "supplementary", "prevac_ad26mva")
 
 reference_params <- reference_pipeline_params(genesets)
 
@@ -52,12 +61,13 @@ option_choices <- list(
 
 res <- run_or_load_comparison(
   dataset = "prevac_ad26mva", label = "engineering_genewise",
+  metrics_subdir = "supplementary",
   X = single$X, Y = single$Y, covariates = single$covariates,
   option_type = "engineering", option_choices = option_choices,
   reference_params = reference_params
 )
 
-save_comparison_metrics(res, dataset = "prevac_ad26mva", category = "engineering_genewise")
+save_comparison_metrics(res, dataset = "prevac_ad26mva", category = "engineering_genewise", subdir = "supplementary")
 
 p <- plot(res, metric = "R2") +
   ggtitle("Pipeline comparison: gene-wise transformation (PREVAC Ad26/MVA)")

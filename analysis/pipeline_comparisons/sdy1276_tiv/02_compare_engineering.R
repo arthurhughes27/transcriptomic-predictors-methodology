@@ -12,7 +12,7 @@
 # (day-1) expression timepoint. Gene-level (no-aggregation) engineering -
 # z-score, no transform, and individual-level fold-change from baseline -
 # is compared separately, as a SUPPLEMENTARY analysis, in
-# 02b_compare_engineering_genewise.R.
+# analysis/supplementary/sdy1276_tiv/01_compare_engineering_genewise.R.
 #
 # Run analysis/pipeline_comparisons/sdy1276_tiv/01_prepare_data.R first.
 

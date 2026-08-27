@@ -27,10 +27,10 @@
 .option_label_overrides <- c(
 
   # --- engineering / engineering_genewise: since 02_compare_engineering.R
-  # (geneset-only) and 02b_compare_engineering_genewise.R (gene-level-only)
+  # (geneset-only) and analysis/supplementary/*/01_compare_engineering_genewise.R (gene-level-only)
   # use identically-worded option labels across all three dataset folders
   # (a deliberate choice when they were split into separate, geneset-vs-
-  # gene-wise scripts/categories - see each folder's 02b script), no
+  # gene-wise scripts/categories - see analysis/supplementary/'s 01_compare_engineering_genewise.R scripts), no
   # override is needed for either category.
 
   # --- selection_geneset / selection_genewise: dearseq's "(geneset, ...)"/

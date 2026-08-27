@@ -3,6 +3,11 @@
 # Master script to run the PREVAC Ad26/MVA (+ placebo) pipeline-comparison
 # scripts in order. See README.md for details on each step.
 #
+# The gene-wise SUPPLEMENTARY comparisons for prevac_ad26mva (gene-level
+# engineering, gene-wise selection) are NOT run here - they live entirely
+# separately at analysis/supplementary/prevac_ad26mva/00_master.R (see that folder's
+# header for why).
+#
 # Each source() call below re-specifies its own full path, rather than
 # reusing a shared folder variable, because every script in this folder
 # ends with rm(list = ls()) - since source() evaluates in the calling
@@ -17,15 +22,7 @@ source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "02_compar
 
 gc()
 
-# source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "02b_compare_engineering_genewise.R"))
-
-gc()
-
 source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "03_compare_selection.R"))
-
-gc()
-
-# source(fs::path("analysis", "pipeline_comparisons", "prevac_ad26mva", "03b_compare_selection_genewise.R"))
 
 gc()
 

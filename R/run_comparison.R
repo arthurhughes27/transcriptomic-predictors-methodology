@@ -65,21 +65,21 @@ run_pipeline_comparison <- function(X, Y, covariates,
 }
 
 #' Run `run_pipeline_comparison()`, but skip it entirely if this exact
-#' comparison's results are already saved - so a comparison script (02, 02b,
-#' 03, 03b, 04) can be re-run (e.g. to re-generate its figure after a
-#' plotting tweak) without re-fitting every pipeline in it.
+#' comparison's results are already saved - so a comparison script can be
+#' re-run (e.g. to re-generate its figure after a plotting tweak) without
+#' re-fitting every pipeline in it.
 #'
 #' Reuses `R/metrics_io.R::save_comparison_metrics()`'s own save file
-#' (`metrics_dir()/<dataset>__<label>.rds`) as the cache, rather than a
-#' second, separate cache - every 02/02b/03/03b/04 script already calls
-#' `save_comparison_metrics()` right after this, so a metrics file existing
-#' already means "this comparison has been run before" (including runs from
-#' before this caching wrapper existed).
+#' (`metrics_dir(metrics_subdir)/<dataset>__<label>.rds`) as the cache,
+#' rather than a second, separate cache - every comparison script already
+#' calls `save_comparison_metrics()` right after this, so a metrics file
+#' existing already means "this comparison has been run before" (including
+#' runs from before this caching wrapper existed).
 #'
 #' The trade-off: only `results` (not the full `predictomics_comparison`
 #' object - `fits`, `call`, etc. aren't saved by `save_comparison_metrics()`)
 #' survives the round trip through the metrics file. That's sufficient for
-#' every 02/02b/03/03b/04 script, which only ever calls `plot(res, metric = "R2")`
+#' every comparison script, which only ever calls `plot(res, metric = "R2")`
 #' - `plot.predictomics_comparison()` reads only `x$results` and
 #' `x$option_type` (`x$metric` only matters as a default when `metric` isn't
 #' passed explicitly, which these scripts always do) - so a minimal
@@ -92,6 +92,9 @@ run_pipeline_comparison <- function(X, Y, covariates,
 #' @param option_type As for `run_pipeline_comparison()` - also needed here
 #'   (independent of `...`) to label a cache-loaded stand-in object's
 #'   `option_type` field for `plot()`'s title.
+#' @param metrics_subdir As for `R/metrics_io.R::metrics_dir()` -
+#'   `"supplementary"` for the gene-wise supplementary scripts
+#'   (analysis/supplementary/), `NULL` (default) for everything else.
 #' @param ... Forwarded to `run_pipeline_comparison()` (which also expects
 #'   `option_type` among its named arguments - safe to pass once and have it
 #'   matched to both this function's explicit `option_type` and `...`, since
@@ -100,8 +103,8 @@ run_pipeline_comparison <- function(X, Y, covariates,
 #' @return A `predictomics_comparison` object (or, when loaded from cache, a
 #'   minimal stand-in with the same `results`/`option_type` fields `plot()`
 #'   needs).
-run_or_load_comparison <- function(dataset, label, option_type, ...) {
-  metrics_path <- fs::path(metrics_dir(), paste0(dataset, "__", label, ".rds"))
+run_or_load_comparison <- function(dataset, label, option_type, metrics_subdir = NULL, ...) {
+  metrics_path <- fs::path(metrics_dir(metrics_subdir), paste0(dataset, "__", label, ".rds"))
 
   if (fs::file_exists(metrics_path)) {
     message("[run_comparison] Loading cached comparison results from ", metrics_path,

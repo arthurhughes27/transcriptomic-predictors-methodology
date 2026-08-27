@@ -5,7 +5,7 @@
 # (mean gene-set aggregation; see R/pipeline_defaults.R::reference_pipeline_params()).
 # This is the ONLY feature-selection comparison treated as a "reference"
 # comparison for this dataset - see
-# 03b_compare_selection_genewise.R for the supplementary, gene-wise (raw
+# analysis/supplementary/sdy1276_tiv/02_compare_selection_genewise.R for the supplementary, gene-wise (raw
 # gene, no aggregation) comparison, which uses a different reference
 # pipeline and is not used to characterise "the" reference approach for
 # this dataset (e.g. in analysis/pipeline_comparisons/visualize_comparisons.R's
@@ -18,7 +18,7 @@
 # engineering. RISE is not included here - paired RISE screening always
 # operates on the raw gene-level matrix, so `predictomics::predict_cv()`
 # rejects `rise_paired = TRUE` combined with `engineering_params$genesets`
-# outright (see 03b_compare_selection_genewise.R, where RISE is compared
+# outright (see analysis/supplementary/sdy1276_tiv/02_compare_selection_genewise.R, where RISE is compared
 # against the raw-gene reference instead).
 #
 # This comparison passes the PAIRED dataset (both timepoints) as the
