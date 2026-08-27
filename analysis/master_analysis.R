@@ -16,6 +16,12 @@
 #   4. Descriptive (analysis/descriptive/master_descriptive.R) - dataset
 #      description figures/tables.
 #
+# The gene-wise SUPPLEMENTARY comparisons (analysis/supplementary/) are
+# deliberately NOT run here - they are not part of the main analysis. Run
+# analysis/supplementary/master_supplementary.R explicitly (after this
+# script, or at least after its preprocessing/pipeline-comparisons steps)
+# if they're wanted.
+#
 # As in every sub-master script, every source() call below re-specifies its
 # own full path rather than reusing a shared variable, since the sourced
 # scripts (transitively) end with rm(list = ls()), which would otherwise

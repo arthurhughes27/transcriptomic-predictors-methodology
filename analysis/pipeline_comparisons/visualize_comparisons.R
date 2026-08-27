@@ -1,14 +1,16 @@
 # analysis/pipeline_comparisons/visualize_comparisons.R
 #
-# Cross-dataset visualisation of pipeline-comparison results: for each
-# methodological category (engineering, engineering_genewise,
-# selection_geneset, selection_genewise, model), compare options fairly
-# across datasets by
-# looking at delta_r2 (each option's R2 minus its own comparison's
-# reference R2) rather than raw R2 - see R/metrics_analysis.R for why a
-# difference, computed within each comparison before pooling, is the fair
-# way to do this (it cancels out how inherently predictable a given
-# dataset's response is, which raw R2 would not).
+# MAIN ANALYSIS ONLY: cross-dataset visualisation of the three "main"
+# pipeline-comparison categories (engineering, selection_geneset, model) -
+# compare options fairly across datasets by looking at delta_r2 (each
+# option's R2 minus its own comparison's reference R2) rather than raw R2 -
+# see R/metrics_analysis.R for why a difference, computed within each
+# comparison before pooling, is the fair way to do this (it cancels out how
+# inherently predictable a given dataset's response is, which raw R2 would
+# not). The gene-wise supplementary categories (engineering_genewise,
+# selection_genewise) are visualised separately by
+# analysis/supplementary/visualize_comparisons.R, from their own,
+# completely separate pooled metrics file - never mixed in here.
 #
 # Produces two separate plots per category (NOT faceted into one figure per
 # plot type - each category is its own file, since different categories are
@@ -23,21 +25,20 @@
 #     category = "model"), participating in the within-dataset ranking like
 #     any other option, since it's a real, valid choice for that category.
 #
-# That's 5 categories x 2 plot types = 10 figures, plus one further figure
+# That's 3 categories x 2 plot types = 6 figures, plus one further figure
 # (see below), saved to output/figures/pipeline_comparisons/cross_dataset/.
 #
-# A ninth figure, produced last, puts the above into context: a grouped bar
-# chart of each dataset's raw (absolute) Baseline and Reference R2
+# A seventh figure, produced last, puts the above into context: a grouped
+# bar chart of each dataset's raw (absolute) Baseline and Reference R2
 # (R/comparison_plots.R::plot_reference_context()) - how much inherent
 # signal (achievable R2 with a sensible default pipeline) each dataset has,
 # independent of any methodological choice. This is the one place raw R2,
 # rather than delta_r2, is shown. It uses ONLY the `category == "model"`
 # Baseline/Reference rows (not "engineering"'s or "selection_geneset"'s -
 # see the comment above that section for why), and only the geneset-mean
-# reference pipeline - the gene-wise/raw-gene reference
-# (`category == "selection_genewise"`) is a supplementary comparison (see
-# each dataset folder's 03b_compare_selection_genewise.R) and is not
-# treated as a/the reference approach for a dataset.
+# reference pipeline - the gene-wise/raw-gene reference used by the
+# supplementary comparisons (analysis/supplementary/) is not treated as
+# a/the reference approach for a dataset.
 #
 # Run analysis/pipeline_comparisons/collect_metrics.R first (and, before
 # that, every dataset folder's 01-04 scripts - see each folder's README.md).
@@ -94,10 +95,10 @@ for (cat in categories) {
 # the `single` (day-1/day-7-only) dataset in every dataset folder, with no
 # ambiguity about which underlying sample was used. "engineering" now also
 # fits the reference pipeline on `single` only in every folder (since
-# 02_compare_engineering.R was split into a geneset-only main comparison and
-# a separate 02b_compare_engineering_genewise.R supplementary one - see that
-# split's rationale in each folder's README.md), but "selection_geneset"
-# still has a sample-ambiguity issue for sdy1276_tiv specifically: its
+# 02_compare_engineering.R is geneset-only - the gene-wise comparison lives
+# entirely separately in analysis/supplementary/ - see that folder's
+# header for the split's rationale), but "selection_geneset" still has a
+# sample-ambiguity issue for sdy1276_tiv specifically: its
 # 03_compare_selection.R uses the `paired`-restricted sample (needed for
 # dearseq's paired mode), so its reference fit there need not exactly match
 # a `single`-only fit of the same pipeline - if those two ever disagree,

@@ -6,13 +6,14 @@
 #
 # GENESET-ONLY: this search is one of "the main analyses" (geneset
 # engineering + geneset-level selection + model choice), matching the
-# separation used throughout analysis/pipeline_comparisons/ (02/03 = main,
-# geneset-only; 02b/03b = supplementary, gene-wise-only). Every engineering
-# option offered here aggregates into gene sets, so round 2 only ever needs
-# the geneset-level selection menu - there is no gene-wise counterpart to
-# this search. Gene-wise engineering/selection are compared only in the
-# supplementary 02b/03b scripts, never as part of finding "the best"
-# pipeline.
+# separation used throughout the repo (analysis/pipeline_comparisons/'s
+# 02/03 = main, geneset-only; analysis/supplementary/'s 01/02 = supplementary,
+# gene-wise-only). Every engineering option offered here aggregates into gene
+# sets, so round 2 only ever needs the geneset-level selection menu - there
+# is no gene-wise counterpart to this search. Gene-wise engineering/selection
+# are compared only in the analysis/supplementary/*/01_compare_engineering_genewise.R
+# and 02_compare_selection_genewise.R scripts, never as part of finding "the
+# best" pipeline.
 #
 # Implements a three-round GREEDY COORDINATE-ASCENT search through the
 # pipeline stages, in their natural execution order (engineering ->
@@ -75,7 +76,7 @@ default_search_model_params <- function(inner_folds = 10, metric = "r2") {
 #' by `compare_pipelines()`. Gene-level (no-aggregation) options are
 #' intentionally NOT offered here - see this file's header: gene-wise
 #' engineering is compared only in the supplementary
-#' 02b_compare_engineering_genewise.R scripts, never as a candidate for "the
+#' analysis/supplementary/*/01_compare_engineering_genewise.R scripts, never as a candidate for "the
 #' best" pipeline.
 engineering_search_menu <- function(genesets) {
   list(
@@ -203,7 +204,7 @@ find_best_pipeline <- function(X, Y, covariates, treatment = NULL, genesets,
   # gene sets - see this file's header - so round 2 only ever needs the
   # geneset-level selection menu. Gene-wise selection (RISE, gene-level
   # dearseq) is never a candidate here; it's compared only in the
-  # supplementary 03b_compare_selection_genewise.R scripts.
+  # supplementary analysis/supplementary/*/02_compare_selection_genewise.R scripts.
 
   reference_params2 <- list(
     engineering_params = engineering_params,

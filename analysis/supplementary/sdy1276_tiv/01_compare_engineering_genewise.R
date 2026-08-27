@@ -1,4 +1,13 @@
-# analysis/pipeline_comparisons/sdy1276_tiv/02b_compare_engineering_genewise.R
+# analysis/supplementary/sdy1276_tiv/01_compare_engineering_genewise.R
+#
+# NOTE: this used to live at analysis/pipeline_comparisons/sdy1276_tiv/
+# 02b_compare_engineering_genewise.R - moved here (and the "02b" cut to "01")
+# so this SUPPLEMENTARY, gene-wise comparison is entirely separate from the
+# main analysis: it is not sourced by
+# analysis/pipeline_comparisons/sdy1276_tiv/00_master.R and does not run as part of
+# analysis/master_analysis.R. Run it (and its sibling
+# 02_compare_selection_genewise.R) via analysis/supplementary/sdy1276_tiv/00_master.R,
+# or analysis/supplementary/master_supplementary.R for all three datasets.
 #
 # SUPPLEMENTARY comparison: gene-level (no gene-set aggregation) engineering
 # choices for predicting SDY1276 (TIV) day-28 antibody titer from day-1
@@ -42,7 +51,7 @@ analysis_data <- readRDS(fs::path("output", "results", "sdy1276_tiv_analysis_dat
 paired <- analysis_data$paired
 genesets <- analysis_data$genesets
 
-figure_path <- fs::path("output", "figures", "pipeline_comparisons", "sdy1276_tiv")
+figure_path <- fs::path("output", "figures", "supplementary", "sdy1276_tiv")
 
 reference_params <- reference_pipeline_params(genesets)
 
@@ -54,13 +63,14 @@ option_choices <- list(
 
 res <- run_or_load_comparison(
   dataset = "sdy1276_tiv", label = "engineering_genewise",
+  metrics_subdir = "supplementary",
   X = paired$X, Y = paired$Y, covariates = paired$covariates,
   individual_id = paired$participant_id, timepoint = paired$timepoint,
   option_type = "engineering", option_choices = option_choices,
   reference_params = reference_params
 )
 
-save_comparison_metrics(res, dataset = "sdy1276_tiv", category = "engineering_genewise")
+save_comparison_metrics(res, dataset = "sdy1276_tiv", category = "engineering_genewise", subdir = "supplementary")
 
 p <- plot(res, metric = "R2") +
   ggtitle("Pipeline comparison: gene-wise transformation (SDY1276, TIV)")

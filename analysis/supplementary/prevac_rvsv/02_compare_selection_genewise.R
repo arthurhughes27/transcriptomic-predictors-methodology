@@ -1,8 +1,17 @@
-# analysis/pipeline_comparisons/sdy1276_tiv/03b_compare_selection_genewise.R
+# analysis/supplementary/prevac_rvsv/02_compare_selection_genewise.R
+#
+# NOTE: this used to live at analysis/pipeline_comparisons/prevac_rvsv/
+# 03b_compare_selection_genewise.R - moved here (and the "03b" cut to "02")
+# so this SUPPLEMENTARY, gene-wise comparison is entirely separate from the
+# main analysis: it is not sourced by
+# analysis/pipeline_comparisons/prevac_rvsv/00_master.R and does not run as part of
+# analysis/master_analysis.R. Run it (and its sibling
+# 01_compare_engineering_genewise.R) via analysis/supplementary/prevac_rvsv/00_master.R,
+# or analysis/supplementary/master_supplementary.R for all three datasets.
 #
 # SUPPLEMENTARY comparison: feature selection at the gene-wise (raw gene,
-# no gene-set aggregation) level, for predicting SDY1276 (TIV) day-28
-# antibody titer from day-1 gene expression, against
+# no gene-set aggregation) level, for predicting PREVAC rVSV (+ placebo)
+# day-180 antibody titer from day-7 gene expression, against
 # R/pipeline_defaults.R::raw_gene_reference_params() (z-score only, no
 # aggregation).
 #
@@ -14,23 +23,14 @@
 # RISE and gene-level dearseq - see below), not to compete with the main
 # geneset-level comparison for "the" dataset-level baseline.
 #
-# Adds RISE (paired mode) and dearseq's *paired* mode at the gene level
+# Adds RISE and dearseq's "classic" mode at the gene level
 # (`dearseq_level = "gene"`), on top of the same variance/correlation/
 # relative-gain methods compared at the geneset level in
-# 03_compare_selection.R. top_n thresholds are rescaled ~100x from that
-# script's geneset-level values, matching the ~100x jump from a few hundred
-# BTM gene sets to ~20,000 raw genes (the same scale reflected in
-# raw_gene_reference_params()'s own top_n = 7,500 variance pre-filter).
-# Threshold-based options (correlation |r|, relative-gain, dearseq p-value)
-# are on a fixed (dimensionless/p-value) scale and so are left unchanged.
+# 03_compare_selection.R. Both use the placebo arm as their treatment
+# contrast, same as 03_compare_selection.R's dearseq option - see that
+# script's header for the "classic" mode/treatment_predictor details.
 #
-# As in 03_compare_selection.R, this passes the PAIRED dataset as the
-# top-level X/Y/individual_id/timepoint, relying on predictomics' paired
-# row-discard parity handling so RISE/dearseq's paired options and the
-# non-paired options/reference all end up compared on the same
-# post-treatment-only sample within this one call.
-#
-# Run analysis/pipeline_comparisons/sdy1276_tiv/01_prepare_data.R first.
+# Run analysis/pipeline_comparisons/prevac_rvsv/01_prepare_data.R first.
 
 library(dplyr)
 library(fs)
@@ -42,10 +42,10 @@ source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "plotting.R"))
 source(fs::path("R", "metrics_io.R"))
 
-analysis_data <- readRDS(fs::path("output", "results", "sdy1276_tiv_analysis_data.rds"))
-paired <- analysis_data$paired
+analysis_data <- readRDS(fs::path("output", "results", "prevac_rvsv_analysis_data.rds"))
+single <- analysis_data$single
 
-figure_path <- fs::path("output", "figures", "pipeline_comparisons", "sdy1276_tiv")
+figure_path <- fs::path("output", "figures", "supplementary", "prevac_rvsv")
 
 reference_params_genewise <- raw_gene_reference_params()
 
@@ -60,31 +60,32 @@ option_choices_genewise <- list(
     relative_gain_inner_folds = 10, relative_gain_metric = "rmse"
   ),
   "RISE (top 500)" = list(
-    method = "rise", rise_paired = TRUE, top_n = 500,
+    method = "rise", top_n = 500,
     rise_power_want_s = 0.8, rise_p_correction = "BH"
   ),
-  "Dearseq (alpha = 0.05)" = list(
-    method = "dearseq", dearseq_mode = "paired", dearseq_level = "gene",
+  "Dearseq (gene, alpha = 0.05)" = list(
+    method = "dearseq", dearseq_mode = "classic", dearseq_level = "gene",
     threshold = 0.05
   )
 )
 
 res_genewise <- run_or_load_comparison(
-  dataset = "sdy1276_tiv", label = "selection_genewise",
-  X = paired$X, Y = paired$Y, covariates = paired$covariates,
-  individual_id = paired$participant_id, timepoint = paired$timepoint,
+  dataset = "prevac_rvsv", label = "selection_genewise",
+  metrics_subdir = "supplementary",
+  X = single$X, Y = single$Y, covariates = single$covariates,
+  treatment = single$treatment,
   option_type = "selection", option_choices = option_choices_genewise,
   reference_params = reference_params_genewise
 )
 
-save_comparison_metrics(res_genewise, dataset = "sdy1276_tiv", category = "selection_genewise")
+save_comparison_metrics(res_genewise, dataset = "prevac_rvsv", category = "selection_genewise", subdir = "supplementary")
 
 p_genewise <- plot(res_genewise, metric = "R2") +
-  ggtitle("Pipeline comparison: gene-wise feature selection (SDY1276, TIV)")
+  ggtitle("Pipeline comparison: gene-wise feature selection (PREVAC rVSV)")
 
 print(p_genewise)
 
-save_pipeline_comparison_plot(p_genewise, figure_path, "comparison_selection_genewise_sdy1276_tiv.pdf")
+save_pipeline_comparison_plot(p_genewise, figure_path, "comparison_selection_genewise_prevac_rvsv.pdf")
 
 gc()
 rm(list = ls())
