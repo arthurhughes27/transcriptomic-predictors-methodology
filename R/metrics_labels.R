@@ -41,8 +41,8 @@
   # (SDY1276 is always paired, PREVAC always classic) - both stripped so
   # "dearseq screening" is treated as one canonical choice regardless of
   # which contrast mechanism a given dataset had available for it.
-  "selection_geneset|Dearseq (geneset, alpha = 0.05)"  = "Dearseq (alpha = 0.05)",
-  "selection_genewise|Dearseq (gene, alpha = 0.05)"    = "Dearseq (alpha = 0.05)"
+  "selection_geneset|Dearseq (alpha = 0.05)"  = "Dearseq (alpha = 0.05)",
+  "selection_genewise|Dearseq (alpha = 0.05)"    = "Dearseq (alpha = 0.05)"
 
   # Everything else (variance/correlation/relative-gain options, RISE,
   # model options, unmapped gene-set aggregation methods) is already

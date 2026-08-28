@@ -110,7 +110,7 @@ selection_geneset_search_menu <- function(genesets, dearseq_mode = NULL) {
     )
   )
   if (!is.null(dearseq_mode)) {
-    menu[["Dearseq (geneset, alpha = 0.05)"]] <- list(
+    menu[["Dearseq (alpha = 0.05)"]] <- list(
       method = "dearseq", dearseq_mode = dearseq_mode, dearseq_level = "geneset",
       genesets = genesets, threshold = 0.05
     )
@@ -435,11 +435,11 @@ selection_genewise_search_menu <- function(dearseq_mode = NULL) {
     )
   )
   if (!is.null(dearseq_mode)) {
-    menu[["RISE (top 500)"]] <- list(
-      method = "rise", top_n = 500,
+    menu[["RISE (alpha = 0.05)"]] <- list(
+      method = "rise", threshold = 0.05,
       rise_power_want_s = 0.8, rise_p_correction = "BH"
     )
-    menu[["Dearseq (gene, alpha = 0.05)"]] <- list(
+    menu[["Dearseq (alpha = 0.05)"]] <- list(
       method = "dearseq", dearseq_mode = dearseq_mode, dearseq_level = "gene",
       threshold = 0.05
     )

@@ -59,7 +59,7 @@ option_choices_geneset <- list(
     method = "relative_gain", threshold = 0,
     relative_gain_inner_folds = 10, relative_gain_metric = "rmse"
   ),
-  "Dearseq (geneset, alpha = 0.05)" = list(
+  "Dearseq (alpha = 0.05)" = list(
     method = "dearseq", dearseq_mode = "classic", dearseq_level = "geneset",
     genesets = genesets, threshold = 0.05
   )

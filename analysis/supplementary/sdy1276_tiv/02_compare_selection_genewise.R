@@ -68,8 +68,8 @@ option_choices_genewise <- list(
     method = "relative_gain", threshold = 0,
     relative_gain_inner_folds = 10, relative_gain_metric = "rmse"
   ),
-  "RISE (top 500)" = list(
-    method = "rise", rise_paired = TRUE, top_n = 500,
+  "RISE (alpha = 0.05)" = list(
+    method = "rise", rise_paired = TRUE, threshold = 0.05,
     rise_power_want_s = 0.8, rise_p_correction = "BH"
   ),
   "Dearseq (alpha = 0.05)" = list(
