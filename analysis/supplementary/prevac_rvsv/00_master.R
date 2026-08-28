@@ -1,8 +1,10 @@
 # analysis/supplementary/prevac_rvsv/00_master.R
 #
 # Master script for prevac_rvsv's SUPPLEMENTARY (gene-wise) comparisons only - runs
-# 01_compare_engineering_genewise.R then 02_compare_selection_genewise.R.
-# Not sourced by analysis/pipeline_comparisons/prevac_rvsv/00_master.R or
+# 01_compare_engineering_genewise.R, 02_compare_selection_genewise.R,
+# 03_compare_model_genewise.R, then the gene-wise best-pipeline search
+# (04_find_best_model_genewise.R). Not sourced by
+# analysis/pipeline_comparisons/prevac_rvsv/00_master.R or
 # analysis/master_analysis.R - run this explicitly (or via
 # analysis/supplementary/master_supplementary.R for all three datasets).
 #
@@ -22,5 +24,13 @@ source(fs::path("analysis", "supplementary", "prevac_rvsv", "01_compare_engineer
 gc()
 
 source(fs::path("analysis", "supplementary", "prevac_rvsv", "02_compare_selection_genewise.R"))
+
+gc()
+
+source(fs::path("analysis", "supplementary", "prevac_rvsv", "03_compare_model_genewise.R"))
+
+gc()
+
+source(fs::path("analysis", "supplementary", "prevac_rvsv", "04_find_best_model_genewise.R"))
 
 gc()

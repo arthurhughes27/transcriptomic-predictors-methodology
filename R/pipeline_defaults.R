@@ -46,11 +46,17 @@ reference_pipeline_params <- function(genesets, model_inner_folds = 10, model_me
 #' `reference_pipeline_params()` (to keep model fitting tractable on ~20,000
 #' raw genes), and an elastic net model.
 #'
-#' Used as the comparator for feature-selection methods that operate on (and
-#' return) individual gene names rather than aggregated gene-set scores -
-#' e.g. the paired RISE/dearseq options in 03_compare_selection.R - since
-#' those selected gene names would not match the reference pipeline's
-#' aggregated (gene-set-named) columns.
+#' This is THE reference pipeline for every SUPPLEMENTARY, gene-wise
+#' comparison under analysis/supplementary/ (engineering_genewise,
+#' selection_genewise, model_genewise, and the gene-wise best-pipeline
+#' search/external validation - see R/best_pipeline_search.R's
+#' find_best_pipeline_genewise()) - used as the comparator both for
+#' feature-selection methods that operate on (and return) individual gene
+#' names rather than aggregated gene-set scores (e.g. the paired RISE/
+#' dearseq options in analysis/supplementary/*/02_compare_selection_genewise.R,
+#' whose selected gene names would not match reference_pipeline_params()'s
+#' aggregated, gene-set-named columns), and for the gene-wise engineering/
+#' model comparisons, which never aggregate at all.
 #'
 #' @param model_inner_folds,model_metric As in reference_pipeline_params().
 #' @param variance_top_n Number of genes retained by the variance pre-filter.

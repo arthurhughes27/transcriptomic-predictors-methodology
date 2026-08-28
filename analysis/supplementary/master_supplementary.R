@@ -1,8 +1,11 @@
 # analysis/supplementary/master_supplementary.R
 #
 # Master script for ALL gene-wise supplementary comparisons: runs all three
-# dataset folders' own supplementary masters, then pools their metrics and
-# produces the cross-dataset supplementary figures.
+# dataset folders' own supplementary masters (engineering/selection/model
+# comparisons, then the gene-wise best-pipeline search), pools their metrics
+# and produces the cross-dataset supplementary figures, then validates each
+# vaccine's best gene-wise pipeline on its external dataset (see
+# analysis/supplementary/external_validation/).
 #
 # NOT part of the main analysis: this is not sourced by
 # analysis/master_analysis.R, and its outputs (output/results/supplementary/,
@@ -37,3 +40,7 @@ source(fs::path("analysis", "supplementary", "prevac_ad26mva", "00_master.R"))
 source(fs::path("analysis", "supplementary", "collect_metrics.R"))
 
 source(fs::path("analysis", "supplementary", "visualize_comparisons.R"))
+
+## ---- 3. External validation of each vaccine's best gene-wise pipeline -----
+
+source(fs::path("analysis", "supplementary", "external_validation", "master_external_validation_genewise.R"))

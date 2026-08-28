@@ -1,33 +1,37 @@
 # analysis/supplementary/prevac_rvsv/01_compare_engineering_genewise.R
 #
-# NOTE: this used to live at analysis/pipeline_comparisons/prevac_rvsv/
-# 02b_compare_engineering_genewise.R - moved here (and the "02b" cut to "01")
-# so this SUPPLEMENTARY, gene-wise comparison is entirely separate from the
-# main analysis: it is not sourced by
-# analysis/pipeline_comparisons/prevac_rvsv/00_master.R and does not run as part of
-# analysis/master_analysis.R. Run it (and its sibling
-# 02_compare_selection_genewise.R) via analysis/supplementary/prevac_rvsv/00_master.R,
-# or analysis/supplementary/master_supplementary.R for all three datasets.
-#
 # SUPPLEMENTARY comparison: gene-level (no gene-set aggregation) engineering
 # choices for predicting PREVAC rVSV (+ placebo) day-180 antibody titer
-# from day-7 gene expression - no transform vs. z-score - against the same
-# reference pipeline used throughout this folder (z-scored gene-level
-# transform, mean gene-set aggregation, elastic net model; see
-# R/pipeline_defaults.R::reference_pipeline_params()).
+# from day-7 gene expression - no transform vs. individual-level fold-change
+# from baseline - against the gene-wise reference pipeline (z-scored
+# gene-level transform, variance top-7,500 pre-filter, elastic net model;
+# see R/pipeline_defaults.R::raw_gene_reference_params()). "Gene-level:
+# z-score" is not offered as an explicit option here since it IS the
+# reference pipeline's own engineering choice.
+#
+# This is NOT sourced by
+# analysis/pipeline_comparisons/prevac_rvsv/00_master.R and does not run as
+# part of analysis/master_analysis.R - run it (and its siblings
+# 02_compare_selection_genewise.R/03_compare_model_genewise.R) via
+# analysis/supplementary/prevac_rvsv/00_master.R, or
+# analysis/supplementary/master_supplementary.R for all three datasets.
 #
 # This is NOT treated as a/the reference approach for this dataset - see
 # 02_compare_engineering.R (this folder's main, geneset-only engineering
 # comparison) for that. This comparison exists to characterise gene-level
-# transform choices in their own right, alongside gene-set aggregation as
-# an alternative, rather than to compete with the geneset-only comparison
-# for "the" dataset-level baseline (see this folder's README.md for the
-# geneset/gene-wise separation).
+# transform choices in their own right, rather than to compete with the
+# geneset-only comparison for "the" dataset-level baseline.
 #
-# Unlike analysis/supplementary/sdy1276_tiv/01_compare_engineering_genewise.R, individual-level
-# fold-change isn't compared here: 01_prepare_data.R doesn't build a paired
-# (baseline + day-7) dataset for this study (see that script's header for
-# why), so this uses the single (day-7-only) dataset throughout.
+# The individual-level fold-change transformation needs *both* baseline
+# (P+0D) and day-7 (P+7D) expression per participant, so - like
+# analysis/supplementary/sdy1276_tiv/01_compare_engineering_genewise.R -
+# this comparison uses the PAIRED dataset built in 01_prepare_data.R. Per
+# predictomics' paired row-discard parity handling, the fold-change option
+# (which discards pre-vaccination rows internally) models on
+# post-vaccination (day-7) rows only, while every other pipeline in the
+# same call (including "no transform" and the reference) is automatically
+# restricted to post-vaccination rows first - keeping every option compared
+# on an identical, independent (one row per participant) sample.
 #
 # treatment is not passed to this comparison - it's not used by any
 # engineering option, and treatment_predictor = FALSE (the default in
@@ -47,22 +51,22 @@ source(fs::path("R", "plotting.R"))
 source(fs::path("R", "metrics_io.R"))
 
 analysis_data <- readRDS(fs::path("output", "results", "prevac_rvsv_analysis_data.rds"))
-single <- analysis_data$single
-genesets <- analysis_data$genesets
+paired <- analysis_data$paired
 
 figure_path <- fs::path("output", "figures", "supplementary", "prevac_rvsv")
 
-reference_params <- reference_pipeline_params(genesets)
+reference_params <- raw_gene_reference_params()
 
 option_choices <- list(
-  "Gene-level: none"    = list(method = "engineer", col_transform = "none", genesets = NULL, agg_method = "mean"),
-  "Gene-level: z-score" = list(method = "engineer", col_transform = "z",    genesets = NULL, agg_method = "mean")
+  "Gene-level: none"        = list(method = "engineer", col_transform = "none", gene_level_fc = FALSE, genesets = NULL, agg_method = "mean"),
+  "Gene-level: fold-change" = list(method = "engineer", col_transform = "none", gene_level_fc = TRUE,  genesets = NULL, agg_method = "mean")
 )
 
 res <- run_or_load_comparison(
   dataset = "prevac_rvsv", label = "engineering_genewise",
   metrics_subdir = "supplementary",
-  X = single$X, Y = single$Y, covariates = single$covariates,
+  X = paired$X, Y = paired$Y, covariates = paired$covariates,
+  individual_id = paired$participant_id, timepoint = paired$timepoint,
   option_type = "engineering", option_choices = option_choices,
   reference_params = reference_params
 )
