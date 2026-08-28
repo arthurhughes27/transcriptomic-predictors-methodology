@@ -84,7 +84,8 @@ category_display_name <- function(category) {
     engineering_genewise = "Feature engineering (gene-wise)",
     selection_geneset    = "Feature selection (geneset-level)",
     selection_genewise   = "Feature selection (gene-wise)",
-    model                = "Model choice"
+    model                = "Model choice",
+    model_genewise       = "Model choice (gene-wise)"
   )
   unname(ifelse(category %in% names(lookup), lookup[category], category))
 }
@@ -99,18 +100,19 @@ category_display_name <- function(category) {
 #' saved metrics tables themselves (they carry option labels, not pipeline
 #' parameter values), so it's a manually-curated match to
 #' `R/pipeline_defaults.R`'s `reference_pipeline_params()` (used by
-#' `engineering`/`engineering_genewise`/`selection_geneset`/`model` - the
-#' gene-level engineering comparison is deliberately evaluated against the
-#' SAME mean-aggregation reference as the geneset comparison, since "does
-#' skipping aggregation help" is the question that reference answers) and
-#' `raw_gene_reference_params()` (used by `selection_genewise`).
+#' `engineering`/`selection_geneset`/`model`) and `raw_gene_reference_params()`
+#' (used by every gene-wise category - `engineering_genewise`,
+#' `selection_genewise`, `model_genewise` - and by the gene-wise
+#' best-pipeline search/external validation; see
+#' `R/best_pipeline_search.R::find_best_pipeline_genewise()`).
 reference_option_label <- function(category) {
   lookup <- c(
     engineering           = "Mean aggregation",
-    engineering_genewise  = "Mean aggregation",
+    engineering_genewise  = "Gene-level: z-score",
     selection_geneset     = "Variance (top 7,500)",
     selection_genewise    = "Variance (top 7,500)",
-    model                 = "Elastic net"
+    model                 = "Elastic net",
+    model_genewise        = "Elastic net"
   )
   unname(ifelse(category %in% names(lookup), lookup[category], "Reference"))
 }

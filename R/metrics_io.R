@@ -10,18 +10,18 @@
 #
 # "category" identifies which methodological axis a given comparison
 # varies: "engineering", "engineering_genewise", "selection_geneset",
-# "selection_genewise", or "model". The gene-wise categories
-# (engineering_genewise, selection_genewise) are SUPPLEMENTARY analyses,
-# entirely separate from the three "main" ones (engineering,
-# selection_geneset, model) - see analysis/supplementary/'s own header for
-# why they're kept in a completely separate output tree (`subdir =
-# "supplementary"` below), not just a separate `category` within the same
-# metrics store: they're not meant to run as part of the main analysis at
-# all, and (for selection specifically) compare against a different
-# reference pipeline (mean-gene-set-aggregated vs. raw-gene; see
-# R/pipeline_defaults.R), so pooling them into the same store without that
-# separation would silently mix a main and a supplementary comparison, or
-# two different baselines.
+# "selection_genewise", "model", or "model_genewise". The gene-wise
+# categories (engineering_genewise, selection_genewise, model_genewise) are
+# SUPPLEMENTARY analyses, entirely separate from the three "main" ones
+# (engineering, selection_geneset, model) - see analysis/supplementary/'s
+# own header for why they're kept in a completely separate output tree
+# (`subdir = "supplementary"` below), not just a separate `category` within
+# the same metrics store: they're not meant to run as part of the main
+# analysis at all, and compare against a different reference pipeline
+# (mean-gene-set-aggregated, for the main categories, vs. raw-gene, for
+# every gene-wise category; see R/pipeline_defaults.R), so pooling them
+# into the same store without that separation would silently mix a main
+# and a supplementary comparison, or two different baselines.
 
 #' Directory where per-comparison metrics tables are cached. Also doubles as
 #' the cache `R/run_comparison.R::run_or_load_comparison()` checks before

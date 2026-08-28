@@ -1,25 +1,27 @@
 # analysis/supplementary/visualize_comparisons.R
 #
-# SUPPLEMENTARY ONLY: cross-dataset visualisation of the two gene-wise
-# supplementary categories (engineering_genewise, selection_genewise) -
-# compare options fairly across datasets by looking at delta_r2 (each
-# option's R2 minus its own comparison's reference R2) rather than raw R2 -
-# see R/metrics_analysis.R for why a difference, computed within each
-# comparison before pooling, is the fair way to do this. Structurally the
-# same approach as analysis/pipeline_comparisons/visualize_comparisons.R
-# (the main analysis' equivalent script), just reading from the completely
-# separate supplementary metrics pool and category set - never mixed with
-# the main analysis' three categories.
+# SUPPLEMENTARY ONLY: cross-dataset visualisation of the three gene-wise
+# supplementary categories (engineering_genewise, selection_genewise,
+# model_genewise) - compare options fairly across datasets by looking at
+# delta_r2 (each option's R2 minus its own comparison's reference R2)
+# rather than raw R2 - see R/metrics_analysis.R for why a difference,
+# computed within each comparison before pooling, is the fair way to do
+# this. Structurally the same approach as
+# analysis/pipeline_comparisons/visualize_comparisons.R (the main analysis'
+# equivalent script), just reading from the completely separate
+# supplementary metrics pool and category set - never mixed with the main
+# analysis' own three categories.
 #
 # Produces two separate plots per category (NOT faceted into one figure per
-# plot type - each category is its own file, since the two categories are
-# evaluated against different reference pipelines (mean-gene-set-aggregated
-# vs. raw-gene; see R/pipeline_defaults.R) and so aren't on a directly
-# comparable delta_r2 scale to be shown side-by-side):
+# plot type - each category is its own file). All three gene-wise
+# categories are evaluated against the SAME reference pipeline
+# (raw_gene_reference_params(); see R/pipeline_defaults.R), unlike the main
+# analysis' categories, but are still kept as separate figures here for
+# consistency with that script's layout:
 #   * a "mini forest plot" (R/comparison_plots.R::plot_relative_effects())
 #   * a rank/delta_r2 heatmap (R/comparison_plots.R::plot_relative_heatmap())
 #
-# That's 2 categories x 2 plot types = 4 figures, saved to
+# That's 3 categories x 2 plot types = 6 figures, saved to
 # output/figures/supplementary/cross_dataset/. Unlike the main analysis'
 # visualize_comparisons.R, there is no reference-context figure here: the
 # gene-wise reference pipelines are explicitly NOT treated as a/the
