@@ -38,6 +38,7 @@ analysis/
     sdy1276_tiv/               # SDY1276 (TIV) engineering/selection/model comparisons
     prevac_rvsv/               # PREVAC rVSV (+ placebo) engineering/selection/model comparisons
     prevac_ad26mva/            # PREVAC Ad26/MVA (+ placebo) engineering/selection/model comparisons
+  tutorial/               # Standalone predictomics package demonstration on simulated data
 R/                        # Reusable helper functions shared across analysis scripts
 ```
 
@@ -64,6 +65,15 @@ studies:
 - `reference_models/` — fits a single "reference" pipeline configuration per vaccine platform (TIV, Ad26/MVA, rVSV); `reference_model_master.R` runs all three
 - `pipeline_comparison/` — uses `predictomics::compare_pipelines()` to systematically compare alternative engineering, selection, and modelling choices against the reference pipeline, across studies/vaccine groups
 - `ebola_risemeta.R` — RISE-based meta-analysis across the Ebola vaccine studies
+
+### Tutorial (`analysis/tutorial/`)
+
+`tutorial.R` — a self-contained demonstration of `predict_cv()` and
+`compare_pipelines()` on simulated data (`predictomics::simulate_predictomics_data()`),
+source material for the thesis's package-tutorial section. Unlike every
+other folder here, it does not touch this repository's real data or
+pipeline-comparison infrastructure, so it is runnable by anyone with just
+`predictomics` installed; see `analysis/tutorial/README.md`.
 
 ### Pipeline comparisons (`analysis/pipeline_comparisons/`)
 
