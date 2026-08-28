@@ -2,12 +2,20 @@
 #
 # SUPPLEMENTARY comparison: gene-level (no gene-set aggregation) engineering
 # choices for predicting PREVAC Ad26/MVA (+ placebo) day-180 antibody titer
-# from day-7 gene expression - no transform vs. individual-level fold-change
-# from baseline - against the gene-wise reference pipeline (z-scored
-# gene-level transform, variance top-7,500 pre-filter, elastic net model;
-# see R/pipeline_defaults.R::raw_gene_reference_params()). "Gene-level:
-# z-score" is not offered as an explicit option here since it IS the
-# reference pipeline's own engineering choice.
+# from day-7 gene expression - individual-level fold-change from baseline
+# vs. the gene-wise reference pipeline (z-scored gene-level transform,
+# variance top-7,500 pre-filter, elastic net model; see
+# R/pipeline_defaults.R::raw_gene_reference_params()).
+#
+# Neither "Gene-level: z-score" nor "Gene-level: none" (raw, untransformed
+# expression) is offered as an explicit option here: with
+# model_params$scale = TRUE always on in this repo, caret centres and
+# scales every predictor before fitting regardless of col_transform, so a
+# column-wise linear transform like z-scoring or "none" becomes numerically
+# identical to the reference by the time the model sees it - there is no
+# distinct "no transform" pipeline left to compare. Fold-change survives as
+# a genuinely different (nonlinear, individual-level baseline-relative)
+# transform, so it remains the sole engineering option here.
 #
 # This is NOT sourced by
 # analysis/pipeline_comparisons/prevac_ad26mva/00_master.R and does not run
@@ -28,10 +36,10 @@
 # this comparison uses the PAIRED dataset built in 01_prepare_data.R. Per
 # predictomics' paired row-discard parity handling, the fold-change option
 # (which discards pre-vaccination rows internally) models on
-# post-vaccination (day-7) rows only, while every other pipeline in the
-# same call (including "no transform" and the reference) is automatically
-# restricted to post-vaccination rows first - keeping every option compared
-# on an identical, independent (one row per participant) sample.
+# post-vaccination (day-7) rows only, while the reference is automatically
+# restricted to post-vaccination rows first - keeping the option and
+# reference compared on an identical, independent (one row per participant)
+# sample.
 #
 # treatment is not passed to this comparison - it's not used by any
 # engineering option, and treatment_predictor = FALSE (the default in
@@ -58,8 +66,7 @@ figure_path <- fs::path("output", "figures", "supplementary", "prevac_ad26mva")
 reference_params <- raw_gene_reference_params()
 
 option_choices <- list(
-  "Gene-level: none"        = list(method = "engineer", col_transform = "none", gene_level_fc = FALSE, genesets = NULL, agg_method = "mean"),
-  "Gene-level: fold-change" = list(method = "engineer", col_transform = "none", gene_level_fc = TRUE,  genesets = NULL, agg_method = "mean")
+  "Gene-level: fold-change" = list(method = "engineer", col_transform = "none", gene_level_fc = TRUE, genesets = NULL, agg_method = "mean")
 )
 
 res <- run_or_load_comparison(
