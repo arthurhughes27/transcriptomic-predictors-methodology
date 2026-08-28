@@ -5,12 +5,42 @@
 # R/external_validation.R::plot_validation_summary()): whichever of
 # explicit selection-frequency, embedded selection-frequency, or (when
 # NEITHER was performed) predictomics::plot_feature_importance() is
-# actually meaningful for the fit at hand.
+# actually meaningful for the fit at hand - or, per
+# PANEL_B_FORCE_IMPORTANCE below, always feature importance.
+
+#' Single switch controlling every combined best-model/validation summary
+#' figure's B) panel: `TRUE` (current default) always shows
+#' `predictomics::plot_feature_importance()`, regardless of whether an
+#' explicit or embedded selection step ran. Set to `FALSE` to revert to the
+#' previous behaviour (explicit selection-frequency / embedded
+#' selection-frequency / feature importance, in that order of preference -
+#' see `build_selection_or_importance_panel()`'s docs for the three-case
+#' logic used when this is `FALSE`).
+#'
+#' This is read as the default for `build_selection_or_importance_panel()`'s
+#' `force_importance` argument (and, through it,
+#' `plot_best_model_summary()`/`plot_validation_summary()`'s own
+#' `force_importance` arguments) - flip it here to change every summary
+#' figure at once, or pass `force_importance = FALSE` at an individual call
+#' site to override just that one figure.
+PANEL_B_FORCE_IMPORTANCE <- TRUE
 
 #' Build the "which feature panel makes sense here" B) panel for a
 #' `predict_cv()` fit.
 #'
-#' Three cases, in order of preference:
+#' If `force_importance` is `TRUE` (the default, via
+#' `PANEL_B_FORCE_IMPORTANCE`), always shows
+#' `predictomics::plot_feature_importance()`, ignoring `selection_params`/
+#' `model_params` entirely - this needs the fit to have been produced with
+#' `model_params$compute_importance = TRUE` (see
+#' R/best_pipeline_search.R::model_search_menu()/
+#' default_search_model_params(), where this is always set) - if it wasn't
+#' (e.g. a fit cached from before that flag existed), the resulting error is
+#' caught and a placeholder shown instead, same as any other panel-build
+#' failure here.
+#'
+#' If `force_importance` is `FALSE`, falls back to three cases, in order of
+#' preference:
 #'   1. An explicit filter selection step ran (`selection_params` not
 #'      `NULL`, e.g. variance/correlation/RISE/dearseq) -
 #'      `plot_selection_stability(type = "explicit")`.
@@ -20,27 +50,27 @@
 #'   3. Neither: no filter step AND the model has no embedded selection of
 #'      its own (e.g. "lm", "ridge", "ranger", "svr") - there is no
 #'      selection frequency to show at all, so
-#'      `predictomics::plot_feature_importance()` is shown instead. This
-#'      needs the fit to have been produced with
-#'      `model_params$compute_importance = TRUE` (see
-#'      R/best_pipeline_search.R::model_search_menu()/
-#'      default_search_model_params(), where this is always set) - if it
-#'      wasn't (e.g. a fit cached from before that flag existed), the
-#'      resulting error is caught and a placeholder shown instead, same as
-#'      any other panel-build failure here.
+#'      `predictomics::plot_feature_importance()` is shown instead (same
+#'      fallback/error-handling as above).
 #'
 #' @param fit A `predict_cv()`/`compare_pipelines()` fit result.
 #' @param selection_params The `selection_params` used to produce `fit`
 #'   (`NULL` if none - e.g. always `NULL` for external-validation fits,
 #'   which fix their feature panel upfront rather than re-selecting; see
-#'   R/external_validation.R's header).
-#' @param model_params The `model_params` used to produce `fit`.
+#'   R/external_validation.R's header). Ignored when `force_importance = TRUE`.
+#' @param model_params The `model_params` used to produce `fit`. Ignored
+#'   (except implicitly, via the fit itself) when `force_importance = TRUE`.
 #' @param top_n `top_n` passed through to whichever plotting function is
 #'   used.
+#' @param force_importance Always show feature importance instead of
+#'   selection-frequency plots. Defaults to `PANEL_B_FORCE_IMPORTANCE`; pass
+#'   `FALSE` to revert this one call to the previous
+#'   explicit/embedded/importance logic.
 #'
 #' @return A `ggplot` object (or a blank placeholder annotated with an
 #'   explanatory message, if the appropriate plot could not be built).
-build_selection_or_importance_panel <- function(fit, selection_params, model_params, top_n = 20) {
+build_selection_or_importance_panel <- function(fit, selection_params, model_params, top_n = 20,
+                                                 force_importance = PANEL_B_FORCE_IMPORTANCE) {
 
   placeholder <- function(label) {
     ggplot2::ggplot() +
@@ -51,7 +81,7 @@ build_selection_or_importance_panel <- function(fit, selection_params, model_par
   has_explicit_selection <- !is.null(selection_params)
   has_embedded_selection <- isTRUE(model_params$method %in% c("glmnet", "lasso"))
 
-  if (!has_explicit_selection && !has_embedded_selection) {
+  if (force_importance || (!has_explicit_selection && !has_embedded_selection)) {
     return(tryCatch(
       predictomics::plot_feature_importance(fit, top_n = top_n),
       error = function(e) {
