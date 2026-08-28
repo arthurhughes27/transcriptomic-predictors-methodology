@@ -264,13 +264,16 @@ validation_subtitle <- function(best, n_features_used) {
 #' figure, labelled A) and B) - the validation analogue of
 #' `R/best_pipeline_search.R::plot_best_model_summary()`.
 #'
-#' Validation fits always run with `selection_params = NULL` (see this
-#' file's header), so there is never a filter-selection step to diagnose -
-#' the B) panel is therefore always either the model's own embedded
-#' selection (e.g. elastic net/lasso's per-fold non-zero coefficients) or,
-#' for a model with no embedded selection of its own (e.g. SVR/random
-#' forest/(un)regularised regression), `predictomics::plot_feature_importance()`
-#' instead - see `R/panel_helpers.R::build_selection_or_importance_panel()`.
+#' By default (`R/panel_helpers.R::PANEL_B_FORCE_IMPORTANCE = TRUE`), B) is
+#' always `predictomics::plot_feature_importance()`. With
+#' `force_importance = FALSE`: validation fits always run with
+#' `selection_params = NULL` (see this file's header), so there is never a
+#' filter-selection step to diagnose - the B) panel is then either the
+#' model's own embedded selection (e.g. elastic net/lasso's per-fold
+#' non-zero coefficients) or, for a model with no embedded selection of its
+#' own (e.g. SVR/random forest/(un)regularised regression), feature
+#' importance anyway - see
+#' `R/panel_helpers.R::build_selection_or_importance_panel()`.
 #'
 #' @param fit The validation `predict_cv()` fit.
 #' @param model_params The `model_params` `fit` was produced with (i.e.
@@ -281,7 +284,15 @@ validation_subtitle <- function(best, n_features_used) {
 #' @param subtitle As built by `validation_subtitle()`.
 #' @param selection_top_n `top_n` passed through to whichever plot B) ends
 #'   up being.
-plot_validation_summary <- function(fit, model_params, title, subtitle, selection_top_n = 20) {
+#' @param force_importance Passed to
+#'   `R/panel_helpers.R::build_selection_or_importance_panel()` - `TRUE`
+#'   (the default, via `PANEL_B_FORCE_IMPORTANCE`) always shows B) as
+#'   feature importance; pass `FALSE` to revert to the
+#'   embedded-selection/importance logic described there (`selection_params`
+#'   is always `NULL` for validation fits, so the "explicit selection" case
+#'   never applies here regardless).
+plot_validation_summary <- function(fit, model_params, title, subtitle, selection_top_n = 20,
+                                     force_importance = PANEL_B_FORCE_IMPORTANCE) {
 
   p_fit <- tryCatch(plot(fit), error = function(e) {
     message("[validation] plot(fit) failed: ", conditionMessage(e))
@@ -293,9 +304,11 @@ plot_validation_summary <- function(fit, model_params, title, subtitle, selectio
   # selection_params = NULL always for validation fits (see this file's
   # header) - build_selection_or_importance_panel() falls back to
   # plot_feature_importance() whenever model_params$method also has no
-  # embedded selection of its own.
+  # embedded selection of its own (bypassed entirely when
+  # force_importance = TRUE).
   p_stability <- build_selection_or_importance_panel(
-    fit, selection_params = NULL, model_params = model_params, top_n = selection_top_n
+    fit, selection_params = NULL, model_params = model_params, top_n = selection_top_n,
+    force_importance = force_importance
   )
 
   # As in plot_best_model_summary(): no guides = "collect", so the CV plot

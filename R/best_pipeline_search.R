@@ -334,12 +334,19 @@ describe_best_pipeline <- function(best) {
 #' @param describe_fn Function used to build the subtitle from `best` -
 #'   `describe_best_pipeline()` (default, geneset-level search results) or
 #'   `describe_best_pipeline_genewise()` (gene-wise search results).
+#' @param force_importance Passed to
+#'   `R/panel_helpers.R::build_selection_or_importance_panel()` - `TRUE`
+#'   (the default, via `PANEL_B_FORCE_IMPORTANCE`) always shows B) as
+#'   feature importance; pass `FALSE` to revert to the
+#'   explicit-selection/embedded-selection/importance logic described
+#'   there.
 #'
 #' @return A `patchwork` object (two aligned panels tagged "A)"/"B)", plus
 #'   the shared title/subtitle), or, if a panel fails to build, that panel is
 #'   replaced with a blank placeholder rather than aborting the whole figure.
 plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 35,
-                                     describe_fn = describe_best_pipeline) {
+                                     describe_fn = describe_best_pipeline,
+                                     force_importance = PANEL_B_FORCE_IMPORTANCE) {
 
   p_fit <- tryCatch(plot(best_fit), error = function(e) {
     message("[best model] plot(best_fit) failed: ", conditionMessage(e))
@@ -349,9 +356,11 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 35,
   })
 
   # See R/panel_helpers.R::build_selection_or_importance_panel() for the
-  # explicit-selection / embedded-selection / feature-importance choice.
+  # explicit-selection / embedded-selection / feature-importance choice
+  # (bypassed entirely when force_importance = TRUE).
   p_stability <- build_selection_or_importance_panel(
-    best_fit, best$selection_params, best$model_params, top_n = selection_top_n
+    best_fit, best$selection_params, best$model_params, top_n = selection_top_n,
+    force_importance = force_importance
   )
 
   # No guides = "collect" here: collecting would pool p_fit's legend with
