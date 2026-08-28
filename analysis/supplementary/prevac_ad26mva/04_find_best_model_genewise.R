@@ -74,7 +74,7 @@ p_summary <- plot_best_model_summary(
 print(p_summary)
 ggsave(
   fs::path(figure_path, "best_model_summary_genewise_prevac_ad26mva.pdf"),
-  p_summary, width = 13.5, height = 8, dpi = 300
+  p_summary, width = 13.5, height = 5, dpi = 300
 )
 
 rm(list = ls())
