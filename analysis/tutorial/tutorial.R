@@ -152,7 +152,7 @@ cmp <- compare_pipelines(
   cv_type            = "kfold",
   folds              = 10,
   seed               = 12345,
-  metric             = "sRMSE",
+  metric             = "R2",
   verbose            = FALSE
 )
 
