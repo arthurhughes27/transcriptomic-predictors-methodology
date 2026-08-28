@@ -2,12 +2,20 @@
 #
 # SUPPLEMENTARY comparison: gene-level (no gene-set aggregation) engineering
 # choices for predicting SDY1276 (TIV) day-28 antibody titer from day-1
-# gene expression - no transform vs. individual-level fold-change from
-# baseline - against the gene-wise reference pipeline (z-scored gene-level
-# transform, variance top-7,500 pre-filter, elastic net model; see
-# R/pipeline_defaults.R::raw_gene_reference_params()). "Gene-level: z-score"
-# is not offered as an explicit option here since it IS the reference
-# pipeline's own engineering choice.
+# gene expression - individual-level fold-change from baseline vs. the
+# gene-wise reference pipeline (z-scored gene-level transform, variance
+# top-7,500 pre-filter, elastic net model; see
+# R/pipeline_defaults.R::raw_gene_reference_params()).
+#
+# Neither "Gene-level: z-score" nor "Gene-level: none" (raw, untransformed
+# expression) is offered as an explicit option here: with
+# model_params$scale = TRUE always on in this repo, caret centres and
+# scales every predictor before fitting regardless of col_transform, so a
+# column-wise linear transform like z-scoring or "none" becomes numerically
+# identical to the reference by the time the model sees it - there is no
+# distinct "no transform" pipeline left to compare. Fold-change survives as
+# a genuinely different (nonlinear, individual-level baseline-relative)
+# transform, so it remains the sole engineering option here.
 #
 # This is NOT sourced by analysis/pipeline_comparisons/sdy1276_tiv/00_master.R
 # and does not run as part of analysis/master_analysis.R - run it (and its
@@ -26,10 +34,9 @@
 # PAIRED dataset built in 01_prepare_data.R. Per predictomics' paired
 # row-discard parity handling, the fold-change option (which discards
 # pre-treatment rows internally) models on post-treatment (day-1) rows
-# only, while every other pipeline in the same call (including "no
-# transform" and the reference) is automatically restricted to
-# post-treatment rows first - keeping every option compared on an
-# identical, independent (one row per participant) sample.
+# only, while the reference is automatically restricted to post-treatment
+# rows first - keeping the option and reference compared on an identical,
+# independent (one row per participant) sample.
 #
 # Run analysis/pipeline_comparisons/sdy1276_tiv/01_prepare_data.R first.
 
@@ -51,8 +58,7 @@ figure_path <- fs::path("output", "figures", "supplementary", "sdy1276_tiv")
 reference_params <- raw_gene_reference_params()
 
 option_choices <- list(
-  "Gene-level: none"        = list(method = "engineer", col_transform = "none", gene_level_fc = FALSE, genesets = NULL, agg_method = "mean"),
-  "Gene-level: fold-change" = list(method = "engineer", col_transform = "none", gene_level_fc = TRUE,  genesets = NULL, agg_method = "mean")
+  "Gene-level: fold-change" = list(method = "engineer", col_transform = "none", gene_level_fc = TRUE, genesets = NULL, agg_method = "mean")
 )
 
 res <- run_or_load_comparison(

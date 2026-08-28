@@ -378,9 +378,9 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 35,
 
 ## ---- Gene-wise (SUPPLEMENTARY) best-pipeline search -------------------------
 #
-# find_best_pipeline_genewise() replicates the exact same 3-round greedy
-# coordinate-ascent design as find_best_pipeline() above, but restricted
-# entirely to gene-level (no gene-set aggregation) options, against
+# find_best_pipeline_genewise() replicates the same greedy coordinate-ascent
+# design as find_best_pipeline() above, but restricted entirely to
+# gene-level (no gene-set aggregation) options, against
 # R/pipeline_defaults.R::raw_gene_reference_params() (z-scored gene-level
 # transform, variance top-7,500 pre-filter, elastic net) as the reference
 # throughout, instead of reference_pipeline_params()'s mean-aggregation
@@ -388,28 +388,30 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 35,
 # above - see analysis/supplementary/*/04_find_best_model_genewise.R and
 # analysis/supplementary/external_validation/ for where it's used.
 #
-# Like find_best_pipeline(), this runs entirely on the SINGLE
-# (post-vaccination-only) dataset - never the paired (baseline + post)
-# dataset - for the same "keep every round's reference/options on an
-# identical sample" reason given in this file's header, so the individual-
-# level gene-level fold-change transform (which needs the paired dataset -
-# see analysis/supplementary/*/01_compare_engineering_genewise.R) and
-# paired-mode RISE/dearseq are not offered as candidates here either, only
-# "classic"-mode RISE/dearseq (PREVAC's two folders, via `dearseq_mode =
-# "classic"`) or neither (SDY1276, `dearseq_mode = NULL`) - mirroring
-# find_best_pipeline()'s own scope limitation exactly.
-
-#' Gene-level engineering options for round 1 of the gene-wise search: just
-#' "no transform", since z-score IS `raw_gene_reference_params()`'s own
-#' engineering choice (already evaluated as the "Reference" row) and,
-#' per this section's header, the fold-change transform is not offered here
-#' (it needs the paired dataset, which this whole search deliberately never
-#' uses).
-engineering_search_menu_genewise <- function() {
-  list(
-    "Gene-level: none" = list(method = "engineer", col_transform = "none", gene_level_fc = FALSE, genesets = NULL, agg_method = "mean")
-  )
-}
+# UNLIKE find_best_pipeline(), this is only a TWO-round search (selection,
+# then model) - there is no engineering round. This search runs entirely on
+# the SINGLE (post-vaccination-only) dataset, never the paired (baseline +
+# post) dataset (same "keep every round's reference/options on an identical
+# sample" reason given in this file's header), so the individual-level
+# gene-level fold-change transform (which needs the paired dataset - see
+# analysis/supplementary/*/01_compare_engineering_genewise.R) is never a
+# candidate here. That leaves "no transform"/"z-score" as the only other
+# conceivable gene-level engineering choices, and - because
+# model_params$scale = TRUE is always on in this repo - caret's own
+# per-predictor centring/scaling makes either of those numerically
+# identical to raw_gene_reference_params()'s own z-score engineering by the
+# time the model sees it (see
+# analysis/supplementary/*/01_compare_engineering_genewise.R's header for
+# the same reasoning). There is therefore no genuinely distinct engineering
+# option left to search over on the single dataset, so engineering_params
+# is simply fixed to the reference's own choice rather than run through a
+# vacuous one-candidate-vs-itself compare_pipelines() call.
+#
+# Selection (round 1 below) offers "classic"-mode RISE/dearseq (PREVAC's
+# two folders, via `dearseq_mode = "classic"`) or neither (SDY1276,
+# `dearseq_mode = NULL`) - paired-mode RISE/dearseq are never offered, for
+# the same single-dataset-only reason - mirroring find_best_pipeline()'s
+# own scope limitation exactly.
 
 #' Gene-wise selection options compared in round 2, at the ~100x larger
 #' `top_n` scale used throughout the gene-wise comparisons (see
@@ -445,9 +447,11 @@ selection_genewise_search_menu <- function(dearseq_mode = NULL) {
   menu
 }
 
-#' Run the gene-wise 3-round greedy coordinate-ascent search (see this
-#' section's header). Structurally identical to `find_best_pipeline()`,
-#' just with the gene-wise reference/menus substituted throughout.
+#' Run the gene-wise two-round greedy coordinate-ascent search (selection,
+#' then model - see this section's header for why there is no engineering
+#' round). Structurally the same idea as `find_best_pipeline()`, just with
+#' the gene-wise reference/menus substituted throughout and engineering
+#' fixed rather than searched.
 #'
 #' @param X,Y,covariates,treatment As for `find_best_pipeline()` - the
 #'   dataset's SINGLE (post-vaccination-only) X/Y/covariates(/treatment).
@@ -455,31 +459,22 @@ selection_genewise_search_menu <- function(dearseq_mode = NULL) {
 #'   available as selection candidates (requires `treatment`; PREVAC
 #'   datasets), or NULL to omit them entirely (SDY1276).
 #'
-#' @return As for `find_best_pipeline()`.
+#' @return As for `find_best_pipeline()`, except `winners$engineering` and
+#'   `round_results$engineering` are `NULL` (no engineering round was run -
+#'   `engineering_params` is simply `raw_gene_reference_params()`'s own
+#'   engineering choice) and `summary` has only two rows ("1. selection",
+#'   "2. model").
 find_best_pipeline_genewise <- function(X, Y, covariates, treatment = NULL,
                                          dearseq_mode = NULL) {
 
   model_params_default <- default_search_model_params()
 
-  ## ---- Round 1: engineering --------------------------------------------------
+  ## ---- Engineering: fixed, not searched (see this section's header) --------
 
   reference_params1 <- raw_gene_reference_params()
+  engineering_params <- reference_params1$engineering_params
 
-  res1 <- run_pipeline_comparison(
-    X = X, Y = Y, covariates = covariates, treatment = treatment,
-    option_type = "engineering",
-    option_choices = engineering_search_menu_genewise(),
-    reference_params = reference_params1
-  )
-
-  winner1 <- .pick_round_winner(res1)
-  engineering_params <- if (winner1$role == "reference") {
-    reference_params1$engineering_params
-  } else {
-    engineering_search_menu_genewise()[[winner1$pipeline]]
-  }
-
-  ## ---- Round 2: selection (gene-wise), conditioned on round 1 ---------------
+  ## ---- Round 1: selection (gene-wise), conditioned on the fixed engineering
 
   reference_params2 <- list(
     engineering_params = engineering_params,
@@ -489,21 +484,21 @@ find_best_pipeline_genewise <- function(X, Y, covariates, treatment = NULL,
 
   selection_menu <- selection_genewise_search_menu(dearseq_mode = dearseq_mode)
 
-  res2 <- run_pipeline_comparison(
+  res1 <- run_pipeline_comparison(
     X = X, Y = Y, covariates = covariates, treatment = treatment,
     option_type = "selection",
     option_choices = selection_menu,
     reference_params = reference_params2
   )
 
-  winner2 <- .pick_round_winner(res2)
-  selection_params <- if (winner2$role == "reference") {
+  winner1 <- .pick_round_winner(res1)
+  selection_params <- if (winner1$role == "reference") {
     reference_params2$selection_params
   } else {
-    selection_menu[[winner2$pipeline]]
+    selection_menu[[winner1$pipeline]]
   }
 
-  ## ---- Round 3: model, conditioned on rounds 1-2's winners ------------------
+  ## ---- Round 2: model, conditioned on the fixed engineering + round 1 ------
 
   reference_params3 <- list(
     engineering_params = engineering_params,
@@ -512,7 +507,7 @@ find_best_pipeline_genewise <- function(X, Y, covariates, treatment = NULL,
   )
 
   # diagnostics = "full": see find_best_pipeline()'s round 3 for why.
-  res3 <- run_pipeline_comparison(
+  res2 <- run_pipeline_comparison(
     X = X, Y = Y, covariates = covariates, treatment = treatment,
     option_type = "model",
     option_choices = model_search_menu(),
@@ -520,18 +515,18 @@ find_best_pipeline_genewise <- function(X, Y, covariates, treatment = NULL,
     diagnostics = "full"
   )
 
-  winner3 <- .pick_round_winner(res3)
-  model_params <- if (winner3$role == "reference") {
+  winner2 <- .pick_round_winner(res2)
+  model_params <- if (winner2$role == "reference") {
     reference_params3$model_params
   } else {
-    model_search_menu()[[winner3$pipeline]]
+    model_search_menu()[[winner2$pipeline]]
   }
 
   summary <- data.frame(
-    round  = c("1. engineering", "2. selection", "3. model"),
-    winner = c(winner1$pipeline, winner2$pipeline, winner3$pipeline),
-    role   = c(winner1$role, winner2$role, winner3$role),
-    R2     = c(winner1$R2, winner2$R2, winner3$R2),
+    round  = c("1. selection", "2. model"),
+    winner = c(winner1$pipeline, winner2$pipeline),
+    role   = c(winner1$role, winner2$role),
+    R2     = c(winner1$R2, winner2$R2),
     stringsAsFactors = FALSE
   )
 
@@ -539,9 +534,9 @@ find_best_pipeline_genewise <- function(X, Y, covariates, treatment = NULL,
     engineering_params = engineering_params,
     selection_params   = selection_params,
     model_params        = model_params,
-    winners             = list(engineering = winner1, selection = winner2, model = winner3),
+    winners             = list(engineering = NULL, selection = winner1, model = winner2),
     summary             = summary,
-    round_results        = list(engineering = res1, selection = res2, model = res3)
+    round_results        = list(engineering = NULL, selection = res1, model = res2)
   )
 }
 
@@ -550,15 +545,16 @@ find_best_pipeline_genewise <- function(X, Y, covariates, treatment = NULL,
 #' `describe_best_pipeline()`, using the `engineering_genewise`/
 #' `selection_genewise`/`model_genewise` reference labels instead.
 #'
+#' Engineering is always described via `reference_option_label()` here (no
+#' role check, unlike selection/model): `find_best_pipeline_genewise()`
+#' never searches engineering (see this file's gene-wise search section
+#' header), so `engineering_params` is always the reference's own choice.
+#'
 #' @param best A list as returned by `find_best_pipeline_genewise()`.
 #' @return A single character string.
 describe_best_pipeline_genewise <- function(best) {
 
-  engineering_label <- if (best$winners$engineering$role == "reference") {
-    reference_option_label("engineering_genewise")
-  } else {
-    best$winners$engineering$pipeline
-  }
+  engineering_label <- reference_option_label("engineering_genewise")
 
   selection_label <- if (is.null(best$selection_params)) {
     "None"
