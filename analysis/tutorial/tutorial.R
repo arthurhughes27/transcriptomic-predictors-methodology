@@ -26,7 +26,7 @@ library(fs)
 library(predictomics)
 library(ggplot2)
 
-source(fs::path("R", "plotting.R"))
+source(fs::path("R", "tutorial_plotting.R"))
 source(fs::path("R", "text_output.R"))
 
 figures_dir <- fs::path("output", "figures", "tutorial")
@@ -99,20 +99,20 @@ fit <- predict_cv(
 save_console_output(capture.output(print(fit)), text_dir, "02_predict_cv_print.txt")
 
 p_fit <- plot(fit)
-save_pipeline_comparison_plot(p_fit, figures_dir, "tutorial_predict_cv_scatter.pdf",
-                              width = 7, height = 5)
+save_tutorial_plot(p_fit, figures_dir, "tutorial_predict_cv_scatter.pdf",
+                   width = 7, height = 5)
 
 # Embedded selection stability: how consistently the lasso picked out each
 # geneset across the 10 outer folds.
 p_stability <- plot_selection_stability(fit, type = "embedded")
-save_pipeline_comparison_plot(p_stability$frequency, figures_dir,
-                              "tutorial_selection_stability.pdf", width = 7, height = 5)
+save_tutorial_plot(p_stability$frequency, figures_dir,
+                   "tutorial_selection_stability.pdf", width = 7, height = 5)
 
 # Feature importance: mean standardised |coefficient| across folds, which is
 # meaningful regardless of how many genesets ended up being selected.
 p_importance <- plot_feature_importance(fit)
-save_pipeline_comparison_plot(p_importance, figures_dir,
-                              "tutorial_feature_importance.pdf", width = 7, height = 5)
+save_tutorial_plot(p_importance, figures_dir,
+                   "tutorial_feature_importance.pdf", width = 7, height = 5)
 
 # The genesets that actually generated the signal, for comparison against
 # the plots above.
@@ -167,8 +167,8 @@ save_console_output(capture.output(print(cmp$results, row.names = FALSE)),
                     text_dir, "05_compare_pipelines_results.txt")
 
 p_cmp <- plot(cmp)
-save_pipeline_comparison_plot(p_cmp, figures_dir, "tutorial_compare_pipelines.pdf",
-                              width = 8, height = 5)
+save_tutorial_plot(p_cmp, figures_dir, "tutorial_compare_pipelines.pdf",
+                   width = 8, height = 5)
 
 message("Tutorial complete. Figures written to ", figures_dir,
        "; console outputs written to ", text_dir, ".")
