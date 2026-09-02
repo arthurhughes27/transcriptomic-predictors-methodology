@@ -13,53 +13,73 @@
 # framing is specific to the tutorial's figures.
 
 #' Wrap a ggplot in the tutorial's code-block-style frame: an F0F2FF
-#' background behind the whole plot (panel, legend, and margins alike) and a
-#' thin black rule spanning the full width at the top and bottom edges.
+#' background filling the entire figure, and a thin black rule spanning the
+#' full width exactly at the top and bottom edges of that same background.
 #'
-#' Implemented as a 3-row `gtable` (thin top border row / the plot itself /
-#' thin bottom border row) rather than a `ggplot2::theme()` border, since
-#' `element_rect()` only supports a uniform 4-sided border, not top/bottom
-#' only.
+#' Implemented as a single-cell `gtable` stack, drawn bottom-to-top: (1) an
+#' opaque background rectangle filling the whole cell, (2) the plot itself,
+#' with its own `plot.background`/`panel.background` made fully transparent
+#' so (1) shows through everywhere the plot doesn't otherwise paint, and (3)
+#' the two border rules, positioned at the cell's own top/bottom edges (not
+#' a separate row) so they sit exactly at the background's own edges.
+#'
+#' This two-part design (transparent plot over an explicit background,
+#' rather than colouring `plot.background`/`panel.background` directly and
+#' relying on them to fill the whole figure) matters for a plot using
+#' `coord_fixed()`/`coord_equal()` (e.g. a predicted-vs-observed scatter):
+#' such a plot's *panel* is forced to a square smaller than the figure's
+#' full extent, so a fill on `panel.background` alone would only colour
+#' that square, not the figure - drawing the background as a separate,
+#' full-cell rectangle underneath sidesteps that entirely, regardless of
+#' what aspect ratio the plot itself uses.
 #'
 #' @param plot A `ggplot` object.
 #' @param fill Background colour, matching `codebg` in the thesis's LaTeX
 #'   preamble.
 #' @param border_colour Colour of the top/bottom rules.
 #' @param line_width `lwd` (in points) of the top/bottom rules.
-#' @param frame_height `grid::unit()` height of each border row (just needs
-#'   to comfortably contain `line_width`'s rule).
 #'
 #' @return A `gtable` object - pass this to `save_tutorial_plot()` (or
 #'   `ggplot2::ggsave()` directly; `ggsave()` accepts any grid grob, not
 #'   just `ggplot` objects).
 add_tutorial_frame <- function(plot, fill = "#F0F2FF", border_colour = "black",
-                                line_width = 1.2, frame_height = grid::unit(6, "pt")) {
+                                line_width = 1.2) {
 
+  # Transparent, not codebg-filled: the background is painted separately,
+  # underneath, by the explicit rectGrob below - see this function's docs
+  # for why (coord_fixed()/coord_equal() plots).
   plot <- plot + ggplot2::theme(
-    plot.background    = ggplot2::element_rect(fill = fill, colour = NA),
-    panel.background   = ggplot2::element_rect(fill = fill, colour = NA),
-    legend.background  = ggplot2::element_rect(fill = fill, colour = NA),
-    legend.key         = ggplot2::element_rect(fill = fill, colour = NA)
+    plot.background    = ggplot2::element_rect(fill = NA, colour = NA),
+    panel.background   = ggplot2::element_rect(fill = NA, colour = NA),
+    legend.background  = ggplot2::element_rect(fill = NA, colour = NA),
+    legend.key         = ggplot2::element_rect(fill = NA, colour = NA)
   )
 
-  # Filled rectangle (so the border row itself is also codebg-coloured, not
-  # left blank/white) plus a centred horizontal rule spanning the full row
-  # width, combined into one grob so both are added to the gtable together.
-  border_row <- grid::grobTree(
-    grid::rectGrob(gp = grid::gpar(fill = fill, col = NA)),
-    grid::linesGrob(
-      x = grid::unit(c(0, 1), "npc"), y = grid::unit(c(0.5, 0.5), "npc"),
-      gp = grid::gpar(col = border_colour, lwd = line_width)
-    )
+  background <- grid::rectGrob(gp = grid::gpar(fill = fill, col = NA))
+
+  # Inset by half the stroke width so the full rule is drawn inside the
+  # figure (a line centred exactly on the edge would have half its width
+  # clipped by the device boundary) while still reading as flush with the
+  # background's own edge.
+  top_line <- grid::linesGrob(
+    x = grid::unit(c(0, 1), "npc"),
+    y = grid::unit(1, "npc") - grid::unit(line_width / 2, "pt"),
+    gp = grid::gpar(col = border_colour, lwd = line_width)
+  )
+  bottom_line <- grid::linesGrob(
+    x = grid::unit(c(0, 1), "npc"),
+    y = grid::unit(0, "npc") + grid::unit(line_width / 2, "pt"),
+    gp = grid::gpar(col = border_colour, lwd = line_width)
   )
 
   gt <- gtable::gtable(
     widths  = grid::unit(1, "npc"),
-    heights = grid::unit.c(frame_height, grid::unit(1, "null"), frame_height)
+    heights = grid::unit(1, "npc")
   )
-  gt <- gtable::gtable_add_grob(gt, ggplot2::ggplotGrob(plot), t = 2, l = 1, name = "tutorial-plot")
-  gt <- gtable::gtable_add_grob(gt, border_row, t = 1, l = 1, name = "tutorial-top-border")
-  gt <- gtable::gtable_add_grob(gt, border_row, t = 3, l = 1, name = "tutorial-bottom-border")
+  gt <- gtable::gtable_add_grob(gt, background, t = 1, l = 1, z = 1, name = "tutorial-background")
+  gt <- gtable::gtable_add_grob(gt, ggplot2::ggplotGrob(plot), t = 1, l = 1, z = 2, name = "tutorial-plot")
+  gt <- gtable::gtable_add_grob(gt, top_line, t = 1, l = 1, z = 3, name = "tutorial-top-border")
+  gt <- gtable::gtable_add_grob(gt, bottom_line, t = 1, l = 1, z = 3, name = "tutorial-bottom-border")
 
   gt
 }
