@@ -4,7 +4,7 @@
 # choices for predicting PREVAC rVSV (+ placebo) day-180 antibody titer
 # from day-7 gene expression - individual-level fold-change from baseline
 # vs. the gene-wise reference pipeline (z-scored gene-level transform,
-# variance top-7,500 pre-filter, elastic net model; see
+# variance top-5,000 pre-filter, elastic net model; see
 # R/pipeline_defaults.R::raw_gene_reference_params()).
 #
 # Neither "Gene-level: z-score" nor "Gene-level: none" (raw, untransformed

@@ -60,9 +60,15 @@ reference_pipeline_params <- function(genesets, model_inner_folds = 10, model_me
 #'
 #' @param model_inner_folds,model_metric As in reference_pipeline_params().
 #' @param variance_top_n Number of genes retained by the variance pre-filter.
-#'   Matches reference_pipeline_params()'s default (7,500) unless overridden.
+#'   Deliberately lower than reference_pipeline_params()'s top_n = 7,500
+#'   (which filters a few hundred gene sets, and so is a no-op safety cap
+#'   there): applied to ~20,000 raw genes, this pre-filter is the dominant
+#'   driver of the gene-wise scripts' memory footprint (every downstream
+#'   engineering/selection/model fit works on `variance_top_n` columns, not
+#'   ~20,000), so it's set lower (5,000) here to keep those scripts'
+#'   resource use manageable.
 raw_gene_reference_params <- function(model_inner_folds = 10, model_metric = "r2",
-                                       variance_top_n = 7500) {
+                                       variance_top_n = 5000) {
   list(
     engineering_params = list(
       method = "engineer",
