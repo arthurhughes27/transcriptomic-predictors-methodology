@@ -100,19 +100,19 @@ save_console_output(capture.output(print(fit)), text_dir, "02_predict_cv_print.t
 
 p_fit <- plot(fit)
 save_tutorial_plot(p_fit, figures_dir, "tutorial_predict_cv_scatter.pdf",
-                   width = 7, height = 5)
+                   width = 8, height = 4)
 
 # Embedded selection stability: how consistently the lasso picked out each
 # geneset across the 10 outer folds.
 p_stability <- plot_selection_stability(fit, type = "embedded")
 save_tutorial_plot(p_stability$frequency, figures_dir,
-                   "tutorial_selection_stability.pdf", width = 7, height = 5)
+                   "tutorial_selection_stability.pdf", width = 8, height = 4)
 
 # Feature importance: mean standardised |coefficient| across folds, which is
 # meaningful regardless of how many genesets ended up being selected.
 p_importance <- plot_feature_importance(fit)
 save_tutorial_plot(p_importance, figures_dir,
-                   "tutorial_feature_importance.pdf", width = 7, height = 5)
+                   "tutorial_feature_importance.pdf", width = 8, height = 4)
 
 # The genesets that actually generated the signal, for comparison against
 # the plots above.
@@ -168,7 +168,7 @@ save_console_output(capture.output(print(cmp$results, row.names = FALSE)),
 
 p_cmp <- plot(cmp)
 save_tutorial_plot(p_cmp, figures_dir, "tutorial_compare_pipelines.pdf",
-                   width = 8, height = 5)
+                   width = 8, height = 4)
 
 message("Tutorial complete. Figures written to ", figures_dir,
        "; console outputs written to ", text_dir, ".")
