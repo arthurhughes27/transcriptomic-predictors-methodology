@@ -101,7 +101,7 @@ p_summary <- plot_validation_summary(
   fit,
   model_params = best$model_params,
   title = "PREVAC rVSV best gene-wise pipeline: validated on Hamburg",
-  subtitle = validation_subtitle(best, ncol(X_validation))
+  subtitle = validation_subtitle_genewise(best, ncol(X_validation))
 )
 print(p_summary)
 ggsave(

@@ -259,6 +259,38 @@ validation_subtitle <- function(best, n_features_used) {
   )
 }
 
+#' Gene-wise counterpart to `validation_subtitle()`, for a DISCOVERY
+#' `find_best_pipeline_genewise()` result (see
+#' `R/best_pipeline_search.R::find_best_pipeline_genewise()`'s header for
+#' why its engineering round is fixed rather than searched -
+#' `best$winners$engineering` is `NULL` there, so `validation_subtitle()`
+#' itself cannot be used on a gene-wise `best`).
+#'
+#' @param best The DISCOVERY `find_best_pipeline_genewise()` result.
+#' @param n_features_used As for `validation_subtitle()`.
+validation_subtitle_genewise <- function(best, n_features_used) {
+
+  engineering_label <- reference_option_label("engineering_genewise")
+
+  model_label <- if (best$winners$model$role == "reference") {
+    reference_option_label("model_genewise")
+  } else {
+    best$winners$model$pipeline
+  }
+
+  selection_label <- if (is.null(best$selection_params)) {
+    "None"
+  } else {
+    paste0(n_features_used, " features fixed from discovery selection")
+  }
+
+  paste0(
+    "Engineering: ", engineering_label,
+    " | Selection: ", selection_label,
+    " | Model: ", model_label
+  )
+}
+
 #' Combine a validation fit's CV-prediction plot and selection-frequency
 #' stability (or feature-importance) plot into a single side-by-side
 #' figure, labelled A) and B) - the validation analogue of
