@@ -13,6 +13,12 @@
 # contrasting Ad26/MVA vs. placebo) - same reasoning as the main search's
 # own 05_find_best_model.R.
 #
+# X is restricted upfront to its 5,000 highest-variance genes via
+# R/gene_prefilter.R::prefilter_by_variance(), matching
+# 02_compare_selection_genewise.R's own prefilter - see that script and
+# R/gene_prefilter.R's headers for why this keeps round 1 (selection)'s
+# per-fold cost manageable without affecting round 2 (model)'s validity.
+#
 # Run analysis/pipeline_comparisons/prevac_ad26mva/01_prepare_data.R first.
 #
 # The greedy search itself (3 compare_pipelines() calls) is re-run only if
@@ -32,6 +38,7 @@ source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "metrics_labels.R"))
 source(fs::path("R", "best_pipeline_search.R"))
 source(fs::path("R", "panel_helpers.R"))
+source(fs::path("R", "gene_prefilter.R"))
 
 results_dir <- fs::path("output", "results", "supplementary")
 fs::dir_create(results_dir)
@@ -48,6 +55,7 @@ if (fs::file_exists(best_path) && fs::file_exists(best_fit_path)) {
 
   analysis_data <- readRDS(fs::path("output", "results", "prevac_ad26mva_analysis_data.rds"))
   single <- analysis_data$single
+  single$X <- prefilter_by_variance(single$X)
 
   best <- find_best_pipeline_genewise(
     X = single$X, Y = single$Y, covariates = single$covariates,

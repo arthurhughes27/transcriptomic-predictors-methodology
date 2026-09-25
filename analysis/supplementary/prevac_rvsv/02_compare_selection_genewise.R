@@ -30,6 +30,14 @@
 # contrast, same as 03_compare_selection.R's dearseq option - see that
 # script's header for the "classic" mode/treatment_predictor details.
 #
+# X is restricted upfront to its 5,000 highest-variance genes via
+# R/gene_prefilter.R::prefilter_by_variance() - a one-off, unsupervised
+# reduction (computed once on single$X, not recomputed per CV fold) that
+# keeps every compared selection method's per-fold cost - relative_gain's
+# nested-CV univariate regression especially - down to 5,000 candidate
+# genes rather than the full ~20,000. See that file's header for why this
+# is leakage-safe.
+#
 # Run analysis/pipeline_comparisons/prevac_rvsv/01_prepare_data.R first.
 
 library(dplyr)
@@ -41,9 +49,11 @@ source(fs::path("R", "pipeline_defaults.R"))
 source(fs::path("R", "run_comparison.R"))
 source(fs::path("R", "plotting.R"))
 source(fs::path("R", "metrics_io.R"))
+source(fs::path("R", "gene_prefilter.R"))
 
 analysis_data <- readRDS(fs::path("output", "results", "prevac_rvsv_analysis_data.rds"))
 single <- analysis_data$single
+single$X <- prefilter_by_variance(single$X)
 
 figure_path <- fs::path("output", "figures", "supplementary", "prevac_rvsv")
 
