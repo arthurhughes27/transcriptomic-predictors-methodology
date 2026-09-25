@@ -29,7 +29,7 @@
 # 03_compare_selection.R. top_n thresholds are rescaled ~100x from that
 # script's geneset-level values, matching the ~100x jump from a few hundred
 # BTM gene sets to ~20,000 raw genes (the same scale reflected in
-# raw_gene_reference_params()'s own top_n = 7,500 variance pre-filter).
+# raw_gene_reference_params()'s own top_n = 5,000 variance pre-filter).
 # Threshold-based options (correlation |r|, relative-gain, dearseq p-value)
 # are on a fixed (dimensionless/p-value) scale and so are left unchanged.
 #

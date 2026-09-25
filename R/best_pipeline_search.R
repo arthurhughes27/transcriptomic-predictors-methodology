@@ -391,7 +391,7 @@ plot_best_model_summary <- function(best_fit, best, title, selection_top_n = 20,
 # design as find_best_pipeline() above, but restricted entirely to
 # gene-level (no gene-set aggregation) options, against
 # R/pipeline_defaults.R::raw_gene_reference_params() (z-scored gene-level
-# transform, variance top-7,500 pre-filter, elastic net) as the reference
+# transform, variance top-5,000 pre-filter, elastic net) as the reference
 # throughout, instead of reference_pipeline_params()'s mean-aggregation
 # reference. This is the gene-wise counterpart to the geneset-only search
 # above - see analysis/supplementary/*/04_find_best_model_genewise.R and

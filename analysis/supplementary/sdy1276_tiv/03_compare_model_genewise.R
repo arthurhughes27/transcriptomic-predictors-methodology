@@ -3,7 +3,7 @@
 # SUPPLEMENTARY comparison: predictive-model choices for predicting SDY1276
 # (TIV) day-28 antibody titer from day-1 gene expression, against the
 # gene-wise reference pipeline (z-scored gene-level transform, variance
-# top-7,500 pre-filter, elastic net model; see
+# top-5,000 pre-filter, elastic net model; see
 # R/pipeline_defaults.R::raw_gene_reference_params()).
 #
 # This is NOT sourced by analysis/pipeline_comparisons/sdy1276_tiv/00_master.R

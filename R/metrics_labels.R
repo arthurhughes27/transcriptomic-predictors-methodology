@@ -110,7 +110,7 @@ reference_option_label <- function(category) {
     engineering           = "Mean aggregation",
     engineering_genewise  = "Gene-level: z-score",
     selection_geneset     = "Variance (top 7,500)",
-    selection_genewise    = "Variance (top 7,500)",
+    selection_genewise    = "Variance (top 5,000)",
     model                 = "Elastic net",
     model_genewise        = "Elastic net"
   )
